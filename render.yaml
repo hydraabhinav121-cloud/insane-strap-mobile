@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: insane-straps-api
+    runtime: node
+    plan: starter
+    rootDir: backend
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    disk:
+      name: insane-straps-data
+      mountPath: /var/data/insane-straps
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATA_DIR
+        value: /var/data/insane-straps
+      - key: OWNER_USERNAME
+        value: InSaNe
+      - key: OWNER_EMAIL
+        value: hydraabhinav121@gmail.com
+      - key: OWNER_DISCORD_ID
+        value: 985486854159753256
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OWNER_INITIAL_PASSWORD
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
