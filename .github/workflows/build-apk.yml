@@ -1,0 +1,74 @@
+
+name: Build Insane Strap APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository files
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Find and extract uploaded source ZIP
+        shell: bash
+        run: |
+          set -e
+          ZIP_FILE="$(find . -maxdepth 1 -type f -iname '*.zip' ! -name 'build-apk.zip' | head -n 1)"
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERROR: No source ZIP was found in the repository root."
+            exit 1
+          fi
+          echo "Using source archive: $ZIP_FILE"
+          mkdir -p extracted
+          unzip -oq "$ZIP_FILE" -d extracted
+
+          PUBSPEC="$(find extracted -type f -name pubspec.yaml -print -quit)"
+          if [ -z "$PUBSPEC" ]; then
+            echo "ERROR: pubspec.yaml was not found. The ZIP may not contain a Flutter project."
+            echo "Files inside the archive:"
+            find extracted -maxdepth 3 -type f | head -n 80
+            exit 1
+          fi
+
+          PROJECT_DIR="$(dirname "$PUBSPEC")"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Flutter project found at: $PROJECT_DIR"
+
+      - name: Prepare Android project
+        run: |
+          cd "$PROJECT_DIR"
+          flutter create --platforms=android .
+          flutter pub get
+
+      - name: Build release APK
+        run: |
+          cd "$PROJECT_DIR"
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: insane-strap-apk
+          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          
