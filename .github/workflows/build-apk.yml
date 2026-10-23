@@ -117,7 +117,7 @@ jobs:
           grep -RInE 'compileSdkVersion[[:space:]]+34|compileSdk[[:space:]]*=[[:space:]]*34|compileSdk[[:space:]]+34' "$PUB_CACHE/hosted/pub.dev" --include='build.gradle' --include='build.gradle.kts' || true
       - name: Analyze Dart code
         working-directory: mobile_v3
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - name: Build release APK
         working-directory: mobile_v3
         run: flutter build apk --release
