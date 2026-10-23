@@ -283,14 +283,14 @@ class _AppShellState extends State<AppShell> {
           const SizedBox(width: 9),
           const Text('InSaNe', style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.w900, color: Colors.white, shadows: [Shadow(color: Colors.white, blurRadius: 7), Shadow(color: Color(0xCCFF1744), blurRadius: 14)])),
           const SizedBox(width: 5),
-          const Icon(Icons.workspace_premium_rounded, color: customAccent, size: 21, shadows: [Shadow(color: customAccent, blurRadius: 12), Shadow(color: customAccent, blurRadius: 22)]),
+          Icon(Icons.workspace_premium_rounded, color: customAccent, size: 21, shadows: [Shadow(color: customAccent, blurRadius: 12), Shadow(color: customAccent, blurRadius: 22)]),
           const SizedBox(width: 5),
-          const Text('STRAPS', style: TextStyle(fontFamily: 'serif', color: customAccent, fontWeight: FontWeight.w900, shadows: [Shadow(color: customAccent, blurRadius: 8), Shadow(color: customAccent, blurRadius: 18)])),
+          Text('STRAPS', style: TextStyle(fontFamily: 'serif', color: customAccent, fontWeight: FontWeight.w900, shadows: [Shadow(color: customAccent, blurRadius: 8), Shadow(color: customAccent, blurRadius: 18)])),
         ]),
         actions: [Padding(padding: const EdgeInsets.only(right: 16), child: Center(child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(color: customAccent.withValues(alpha: .13), borderRadius: BorderRadius.circular(30)),
-          child: const Text('MOBILE', style: TextStyle(color: customAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+          child: Text('MOBILE', style: TextStyle(color: customAccent, fontSize: 11, fontWeight: FontWeight.bold)),
         )))],
       ),
       body: SafeArea(child: IndexedStack(index: tab, children: pages)),
@@ -498,10 +498,10 @@ class _AppShellState extends State<AppShell> {
   Widget _planCard(String name, String price, String term, bool featured, VoidCallback onTap) => Card(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: featured ? red : Colors.white10, width: featured ? 1.4 : 1)),
     child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-      Container(width: 42, height: 42, decoration: BoxDecoration(color: customAccent.withValues(alpha: .13), borderRadius: BorderRadius.circular(13)), child: const Icon(Icons.bolt, color: customAccent)),
+      Container(width: 42, height: 42, decoration: BoxDecoration(color: customAccent.withValues(alpha: .13), borderRadius: BorderRadius.circular(13)), child: Icon(Icons.bolt, color: customAccent)),
       const SizedBox(width: 12),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(name, style: const TextStyle(fontSize: 12, color: customAccent, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        Text(name, style: TextStyle(fontSize: 12, color: customAccent, fontWeight: FontWeight.w900, letterSpacing: 1)),
         const SizedBox(height: 4), Text(term, style: const TextStyle(color: Colors.white60, fontSize: 12)),
       ])),
       Text(price, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
@@ -523,11 +523,11 @@ class _AppShellState extends State<AppShell> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.forum_rounded, color: customAccent, size: 36),
+            Icon(Icons.forum_rounded, color: customAccent, size: 36),
             const SizedBox(height: 12),
             Text(plan, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
             const SizedBox(height: 4),
-            Text('Plan price: ₹$rupees', style: const TextStyle(color: customAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Plan price: ₹$rupees', style: TextStyle(color: customAccent, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             const Text(
               'Continue to our Discord server to arrange payment and request Pro activation. Please do not send payment until the owner confirms the details.',
