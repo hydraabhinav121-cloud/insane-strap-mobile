@@ -179,9 +179,16 @@ class _AppShellState extends State<AppShell> {
   double customGlow = 12;
   String? customImagePath;
   bool customPremium = false;
+  bool premiumUser = false;
   final flagsController = TextEditingController(text: '{\n  "DFIntTaskSchedulerTargetFps": 120\n}');
   String status = 'Local preview';
-  @override void initState() { super.initState(); _loadAppearance(); }
+  @override void initState() { super.initState(); _loadAppearance(); _loadPremiumStatus(); }
+  Future<void> _loadPremiumStatus() async {
+    final p = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    final role = (p.getString('insane_straps_role') ?? '').toLowerCase();
+    setState(() => premiumUser = role == 'owner' || role == 'vip' || p.getBool('insane_straps_is_pro') == true);
+  }
   Future<void> _loadAppearance() async {
     final p = await SharedPreferences.getInstance();
     if (!mounted) return;
@@ -203,9 +210,9 @@ class _AppShellState extends State<AppShell> {
   }
   @override void dispose() { flagsController.dispose(); super.dispose(); }
   @override Widget build(BuildContext context) {
-    final pages = [
-      _home(), _games(), _plans(), _flags(), _account(), _customization()
-    ];
+    final pages = premiumUser
+        ? [_home(), _games(), _flags(), _account(), _customization()]
+        : [_home(), _games(), _plans(), _flags(), _account(), _customization()];
     return Scaffold(
       appBar: AppBar(
         title: Row(children: [
@@ -236,13 +243,13 @@ class _AppShellState extends State<AppShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: tab, onDestinationSelected: (v) => setState(() => tab = v),
         backgroundColor: panel, indicatorColor: gold.withValues(alpha: .20),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.sports_esports_outlined), label: 'Games'),
-          NavigationDestination(icon: Icon(Icons.workspace_premium_outlined), label: 'Pro'),
-          NavigationDestination(icon: Icon(Icons.code_rounded), label: 'Fast Flags'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Account'),
-        NavigationDestination(icon: Icon(Icons.palette_outlined), label: 'Customize'),
+        destinations: [
+          const NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'Home'),
+          const NavigationDestination(icon: Icon(Icons.sports_esports_outlined), label: 'Games'),
+          if (!premiumUser) const NavigationDestination(icon: Icon(Icons.workspace_premium_outlined), label: 'Pro'),
+          const NavigationDestination(icon: Icon(Icons.code_rounded), label: 'Fast Flags'),
+          const NavigationDestination(icon: Icon(Icons.person_outline), label: 'Account'),
+          const NavigationDestination(icon: Icon(Icons.palette_outlined), label: 'Customize'),
         ],
       ),
     );
