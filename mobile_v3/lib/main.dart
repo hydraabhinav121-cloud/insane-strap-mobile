@@ -2,9 +2,47 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:android_intent_plus/android_intent.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'auth.dart';
 
 void main() => runApp(const InsaneStrapsApp());
+
+@pragma('vm:entry-point')
+void overlayMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MaterialApp(debugShowCheckedModeBanner: false, home: _FloatingTools()));
+}
+class _FloatingTools extends StatefulWidget {
+  const _FloatingTools({super.key});
+  @override State<_FloatingTools> createState() => _FloatingToolsState();
+}
+class _FloatingToolsState extends State<_FloatingTools> {
+  bool open = false;
+  String info = 'Choose a tool below.';
+  Future<void> toggle() async {
+    setState(() => open = !open);
+    await FlutterOverlayWindow.resizeOverlay(open ? 310 : 76, open ? 430 : 76, enableDrag: true);
+  }
+  @override Widget build(BuildContext context) => Material(
+    color: Colors.transparent,
+    child: open ? Container(
+      width: 310, padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: const Color(0xF5101014), border: Border.all(color: gold, width: 2), borderRadius: BorderRadius.circular(18)),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(children: [Image.asset('assets/app_icon.png', width: 32, height: 32), const Expanded(child: Text('InSaNe STRAPS', style: TextStyle(color: gold, fontWeight: FontWeight.bold))), IconButton(onPressed: () => FlutterOverlayWindow.closeOverlay(), icon: const Icon(Icons.close, color: red))]),
+        _tool('FPS tips', 'Lower game graphics and enable your phone Game Mode. No guaranteed FPS unlock.'),
+        _tool('Fast Flags', 'JSON editing is available in the main app; flags are not injected into games.'),
+        _tool('Reconnect', 'Automatic rejoin is not implemented; use the game’s own controls.'),
+        _tool('Performance', 'Per-game CPU/GPU/FPS monitoring is not connected in this build.'),
+        _tool('Capture', 'Screen recording needs Android MediaProjection consent and is not enabled yet.'),
+        Padding(padding: const EdgeInsets.all(8), child: Text(info, style: const TextStyle(color: Colors.white70, fontSize: 11))),
+        TextButton(onPressed: toggle, child: const Text('MINIMIZE', style: TextStyle(color: gold))),
+      ]),
+    ) : GestureDetector(onTap: toggle, child: Container(width: 68, height: 68, padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: const Color(0xF5101014), shape: BoxShape.circle, border: Border.all(color: gold, width: 2)), child: Image.asset('assets/app_icon.png'))),
+  );
+  Widget _tool(String title, String detail) => ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: const Icon(Icons.bolt, color: red), title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), onTap: () => setState(() => info = detail));
+}
+
 
 const red = Color(0xFFFF334F);
 const gold = Color(0xFFD4AF37);
@@ -157,6 +195,8 @@ class _AppShellState extends State<AppShell> {
     const SizedBox(height: 12),
     _gameCard('Free Fire', 'Open the installed game or its Play Store page', Icons.local_fire_department_rounded,
       'com.dts.freefireth', 'https://play.google.com/store/apps/details?id=com.dts.freefireth'),
+    const SizedBox(height: 12),
+    FilledButton.icon(onPressed: _enableFloatingTools, icon: const Icon(Icons.picture_in_picture_alt), label: const Text('Enable floating Straps icon'), style: FilledButton.styleFrom(backgroundColor: gold, foregroundColor: Colors.black)),
     const SizedBox(height: 20),
     const Text('STRAPS TOOLS', style: TextStyle(letterSpacing: 1.5, fontSize: 12, color: Colors.white54, fontWeight: FontWeight.bold)),
     const SizedBox(height: 10),
@@ -174,6 +214,16 @@ class _AppShellState extends State<AppShell> {
       child: const Text('Compatibility note: Roblox Fast Flags are not guaranteed to work on Android, and this app currently validates JSON only—it does not inject flags into Roblox or Free Fire. We will only enable controls that are supported by Android and the games.', style: TextStyle(color: Color(0xFFE4D7B2), height: 1.4, fontSize: 12)),
     ),
   ]);
+
+  Future<void> _enableFloatingTools() async {
+    try {
+      var ok = await FlutterOverlayWindow.isPermissionGranted();
+      if (!ok) ok = await FlutterOverlayWindow.requestPermission() ?? false;
+      if (!ok) { if (mounted) _snack('Allow Display over other apps for InSaNe Straps.'); return; }
+      await FlutterOverlayWindow.showOverlay(height: 76, width: 76, alignment: OverlayAlignment.centerRight, enableDrag: true, overlayTitle: 'InSaNe Straps', overlayContent: 'Tap logo for game tools');
+      if (mounted) _snack('Floating icon enabled.');
+    } catch (e) { if (mounted) _snack('Overlay error: $e'); }
+  }
 
   Future<void> _openGame(String name, String packageName, String storeUrlText) async {
     try {

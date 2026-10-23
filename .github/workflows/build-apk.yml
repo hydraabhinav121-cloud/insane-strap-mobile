@@ -60,6 +60,33 @@ jobs:
           import cairosvg
           cairosvg.svg2png(url='mobile_v3/assets/insane_crown.svg', write_to='mobile_v3/assets/app_icon.png', output_width=512, output_height=512)
           PY
+      - name: Configure floating overlay manifest
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          ET.register_namespace('android', 'http://schemas.android.com/apk/res/android')
+          path = Path('mobile_v3/android/app/src/main/AndroidManifest.xml')
+          tree = ET.parse(path)
+          root = tree.getroot()
+          a = '{http://schemas.android.com/apk/res/android}'
+          for name in ['SYSTEM_ALERT_WINDOW', 'FOREGROUND_SERVICE', 'FOREGROUND_SERVICE_SPECIAL_USE']:
+              if not any(e.tag == 'uses-permission' and e.get(a+'name') == 'android.permission.'+name for e in root):
+                  ET.SubElement(root, 'uses-permission', {a+'name': 'android.permission.'+name})
+          queries = root.find('queries')
+          if queries is None:
+              queries = ET.Element('queries')
+              root.insert(list(root).index(root.find('application')), queries)
+          for package in ['com.roblox.client', 'com.dts.freefireth', 'com.dts.freefiremax']:
+              if not any(e.get(a+'name') == package for e in queries.findall('package')):
+                  ET.SubElement(queries, 'package', {a+'name': package})
+          app = root.find('application')
+          if not any(e.get(a+'name') == 'flutter.overlay.window.flutter_overlay_window.OverlayService' for e in app.findall('service')):
+              service = ET.SubElement(app, 'service', {a+'name':'flutter.overlay.window.flutter_overlay_window.OverlayService', a+'exported':'false', a+'foregroundServiceType':'specialUse'})
+              ET.SubElement(service, 'property', {a+'name':'android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE', a+'value':'Displays user-requested InSaNe Straps gaming controls over other apps'})
+          tree.write(path, encoding='utf-8', xml_declaration=True)
+          print('Overlay service and game visibility configured.')
+          PY
       - name: Resolve packages
         working-directory: mobile_v3
         run: |
