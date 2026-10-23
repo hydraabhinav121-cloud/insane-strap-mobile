@@ -133,6 +133,8 @@ class _AuthPageState extends State<AuthPage> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('insane_straps_token', token);
       final profile = await _request('GET', '/me', token: token);
+      await prefs.setString('insane_straps_role', (profile['role'] ?? 'user').toString().toLowerCase());
+      await prefs.setBool('insane_straps_is_pro', profile['is_pro'] == true || (profile['role'] ?? '').toString().toLowerCase() == 'owner' || (profile['role'] ?? '').toString().toLowerCase() == 'vip');
       if (!mounted) return;
       setState(() {
         _token = token;
@@ -161,6 +163,8 @@ class _AuthPageState extends State<AuthPage> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('insane_straps_token', token);
       final profile = await _request('GET', '/me', token: token);
+      await prefs.setString('insane_straps_role', (profile['role'] ?? 'user').toString().toLowerCase());
+      await prefs.setBool('insane_straps_is_pro', profile['is_pro'] == true || (profile['role'] ?? '').toString().toLowerCase() == 'owner' || (profile['role'] ?? '').toString().toLowerCase() == 'vip');
       if (!mounted) return;
       setState(() {
         _token = token;
