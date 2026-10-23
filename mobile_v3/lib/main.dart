@@ -37,7 +37,7 @@ class _FloatingToolsState extends State<_FloatingTools> {
       width: 320, padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: const Color(0xF508070A), border: Border.all(color: red, width: 2), borderRadius: BorderRadius.circular(18), boxShadow: const [BoxShadow(color: Color(0x99FF1744), blurRadius: 18, spreadRadius: 1)]),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Row(children: [Image.asset('assets/app_icon.png', width: 38, height: 38), const Expanded(child: Text('InSaNe STRAPS', style: TextStyle(color: gold, fontWeight: FontWeight.bold))), IconButton(onPressed: () => FlutterOverlayWindow.closeOverlay(), icon: const Icon(Icons.close, color: red))]),
+        Row(children: [Image.asset('assets/app_icon.png', width: 38, height: 38), const Expanded(child: Text('InSaNe STRAPS', style: TextStyle(color: gold, fontWeight: FontWeight.bold))), IconButton(tooltip: 'Remove floating icon and window', onPressed: () => FlutterOverlayWindow.closeOverlay(), icon: const Icon(Icons.close, color: red))]),
         _tool('FPS tips', 'Lower game graphics and enable your phone Game Mode. No guaranteed FPS unlock.'),
         _tool('Fast Flags', 'JSON editing is available in the main app; flags are not injected into games.'),
         _tool('Reconnect', 'Automatic rejoin is not implemented; use the game’s own controls.'),
@@ -235,7 +235,11 @@ class _AppShellState extends State<AppShell> {
     final baseTheme = Theme.of(context);
     final appTheme = baseTheme.copyWith(
       colorScheme: baseTheme.colorScheme.copyWith(primary: customAccent, secondary: customAccent),
-      textTheme: baseTheme.textTheme.apply(fontFamily: customFont, fontSizeFactor: customFontSize / 16),
+      textTheme: baseTheme.textTheme.apply(fontFamily: customFont, fontSizeFactor: customFontSize / 16).copyWith(
+        headlineLarge: baseTheme.textTheme.headlineLarge?.copyWith(shadows: [Shadow(color: customAccent.withValues(alpha: .75), blurRadius: customGlow)]),
+        headlineMedium: baseTheme.textTheme.headlineMedium?.copyWith(shadows: [Shadow(color: customAccent.withValues(alpha: .7), blurRadius: customGlow * .8)]),
+        titleLarge: baseTheme.textTheme.titleLarge?.copyWith(shadows: [Shadow(color: customAccent.withValues(alpha: .55), blurRadius: customGlow * .6)]),
+      ),
       appBarTheme: baseTheme.appBarTheme.copyWith(iconTheme: IconThemeData(color: customAccent)),
       sliderTheme: baseTheme.sliderTheme.copyWith(activeTrackColor: customAccent, thumbColor: customAccent),
     );
