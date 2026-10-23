@@ -24,15 +24,15 @@ class _FloatingToolsState extends State<_FloatingTools> {
   String info = 'Choose a tool below.';
   Future<void> toggle() async {
     setState(() => open = !open);
-    await FlutterOverlayWindow.resizeOverlay(open ? 310 : 76, open ? 430 : 76, true);
+    await FlutterOverlayWindow.resizeOverlay(open ? 320 : 88, open ? 500 : 88, true);
   }
   @override Widget build(BuildContext context) => Material(
     color: Colors.transparent,
     child: open ? Container(
-      width: 310, padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: const Color(0xF5101014), border: Border.all(color: gold, width: 2), borderRadius: BorderRadius.circular(18)),
+      width: 320, padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: const Color(0xF508070A), border: Border.all(color: red, width: 2), borderRadius: BorderRadius.circular(18), boxShadow: const [BoxShadow(color: Color(0x99FF1744), blurRadius: 18, spreadRadius: 1)]),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Row(children: [Image.asset('assets/app_icon.png', width: 32, height: 32), const Expanded(child: Text('InSaNe STRAPS', style: TextStyle(color: gold, fontWeight: FontWeight.bold))), IconButton(onPressed: () => FlutterOverlayWindow.closeOverlay(), icon: const Icon(Icons.close, color: red))]),
+        Row(children: [Image.asset('assets/app_icon.png', width: 38, height: 38), const Expanded(child: Text('InSaNe STRAPS', style: TextStyle(color: gold, fontWeight: FontWeight.bold))), IconButton(onPressed: () => FlutterOverlayWindow.closeOverlay(), icon: const Icon(Icons.close, color: red))]),
         _tool('FPS tips', 'Lower game graphics and enable your phone Game Mode. No guaranteed FPS unlock.'),
         _tool('Fast Flags', 'JSON editing is available in the main app; flags are not injected into games.'),
         _tool('Reconnect', 'Automatic rejoin is not implemented; use the game’s own controls.'),
@@ -41,7 +41,7 @@ class _FloatingToolsState extends State<_FloatingTools> {
         Padding(padding: const EdgeInsets.all(8), child: Text(info, style: const TextStyle(color: Colors.white70, fontSize: 11))),
         TextButton(onPressed: toggle, child: const Text('MINIMIZE', style: TextStyle(color: gold))),
       ]),
-    ) : GestureDetector(onTap: toggle, child: Container(width: 68, height: 68, padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: const Color(0xF5101014), shape: BoxShape.circle, border: Border.all(color: gold, width: 2)), child: Image.asset('assets/app_icon.png'))),
+    ) : GestureDetector(onTap: toggle, child: Container(width: 68, height: 68, padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: const Color(0xF508070A), shape: BoxShape.circle, border: Border.all(color: red, width: 2.5), boxShadow: const [BoxShadow(color: Color(0xAAFF1744), blurRadius: 16, spreadRadius: 2)]), child: Image.asset('assets/app_icon.png', fit: BoxFit.contain))),
   );
   Widget _tool(String title, String detail) => ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: const Icon(Icons.bolt, color: red), title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), onTap: () => setState(() => info = detail));
 }
