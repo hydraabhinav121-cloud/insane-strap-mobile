@@ -330,13 +330,13 @@ class _AppShellState extends State<AppShell> {
     const SizedBox(height: 20),
     const Text('♛  STRAPS TOOLS', style: TextStyle(fontFamily: 'serif', letterSpacing: 1.5, fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold, shadows: [Shadow(color: Color(0xCCFF1744), blurRadius: 9)])),
     const SizedBox(height: 10),
-    _quick('FPS & performance tips', Icons.speed, 'Open optimization guide', () => _showToolInfo('FPS & Boost', 'This screen can show supported Android performance tips. It cannot force a higher FPS cap or overclock your device; those depend on the game, device, and Android permissions.'), wide: true),
+    _quick('FPS & performance tips', Icons.speed, 'Open optimization guide', _showFpsGuide, wide: true),
     const SizedBox(height: 10),
     _quick('Fast Flags', Icons.tune, 'Edit and validate JSON', () => setState(() => tab = 3), wide: true),
     const SizedBox(height: 10),
-    _quick('AFK / reconnect helper', Icons.autorenew, 'Compatibility information', () => _showToolInfo('AFK & reconnect', 'A normal Android app cannot guarantee anti-AFK behavior or prevent a game server from disconnecting you. Automatic reconnect requires supported game-specific integration and may be restricted by the game.'), wide: true),
+    _quick('AFK / reconnect helper', Icons.autorenew, 'Open reconnect options', () => _showReconnectGuide(), wide: true),
     const SizedBox(height: 10),
-    _quick('Screenshot & screen recording', Icons.screen_share_outlined, 'Android capture permissions', () => _showToolInfo('Screen capture', 'Screen recording and floating overlays are not wired up in this build. Android requires a native MediaProjection consent flow for capture and special overlay permission for a floating Straps icon. Nothing is being recorded yet.'), wide: true),
+    _quick('Screenshot & floating icon', Icons.screen_share_outlined, 'Enable floating Straps icon', () => _showCaptureOptions(), wide: true),
     const SizedBox(height: 18),
     Container(
       padding: const EdgeInsets.all(14),
@@ -407,12 +407,35 @@ class _AppShellState extends State<AppShell> {
     ),
   );
 
-  void _showToolInfo(String title, String message) {
+  void _showFpsGuide() {
     showDialog<void>(context: context, builder: (ctx) => AlertDialog(
       backgroundColor: panel,
-      title: Text(title),
-      content: Text(message, style: const TextStyle(height: 1.45, color: Colors.white70)),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Got it'))],
+      title: const Text('FPS & Boost'),
+      content: const SingleChildScrollView(child: Text(
+        'Try these safe performance steps:\\n\\n• Turn on your phone’s built-in Game Mode / Game Turbo.\\n• Use the game’s supported frame-rate setting.\\n• Close downloads and heavy background apps.\\n• Keep the phone cool and avoid playing while charging if it overheats.\\n• Use a stable Wi-Fi connection.\\n\\nThis app does not overclock your phone or unlock a game FPS cap.',
+        style: TextStyle(height: 1.45, color: Colors.white70))),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Done'))],
+    ));
+  }
+
+  void _showReconnectGuide() {
+    showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+      backgroundColor: panel,
+      title: const Text('AFK & reconnect'),
+      content: const Text('Reconnect is not enabled automatically because Roblox and Free Fire do not expose a supported universal rejoin API to this app. If disconnected, reopen the game from Game Centre. I can add a one-tap relaunch button, but it cannot bypass AFK or server rules.', style: TextStyle(height: 1.45, color: Colors.white70)),
+      actions: [TextButton(onPressed: () { Navigator.pop(ctx); setState(() => tab = 1); }, child: const Text('Open Game Centre')), TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))],
+    ));
+  }
+
+  void _showCaptureOptions() {
+    showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+      backgroundColor: panel,
+      title: const Text('Screen capture & floating icon'),
+      content: const Text('The floating Straps icon is supported. Enable the overlay permission to place it above your game. Screen recording itself is not implemented yet and will not start until Android’s recording-consent flow is added.', style: TextStyle(height: 1.45, color: Colors.white70)),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        ElevatedButton(onPressed: () { Navigator.pop(ctx); _enableFloatingTools(); }, child: const Text('Enable floating icon')),
+      ],
     ));
   }
 
