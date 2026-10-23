@@ -93,9 +93,54 @@ class InsaneStrapsApp extends StatelessWidget {
     theme: ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: bg,
-      colorScheme: ColorScheme.fromSeed(seedColor: gold, brightness: Brightness.dark),
+      colorScheme: ColorScheme.fromSeed(seedColor: red, brightness: Brightness.dark).copyWith(
+        primary: red, secondary: const Color(0xFFFF4D6D), surface: panel,
+      ),
+      fontFamily: 'Roboto',
       useMaterial3: true,
-      cardTheme: const CardThemeData(color: panel, elevation: 0),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF090609), foregroundColor: Colors.white,
+        elevation: 0, centerTitle: false,
+      ),
+      cardTheme: CardThemeData(
+        color: panel, elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+          side: BorderSide(color: Color(0x66FF1744)),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: panel,
+        indicatorColor: red.withValues(alpha: .20),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
+          fontWeight: states.contains(WidgetState.selected) ? FontWeight.w800 : FontWeight.w500,
+          color: states.contains(WidgetState.selected) ? red : Colors.white70,
+          shadows: states.contains(WidgetState.selected)
+              ? const [Shadow(color: red, blurRadius: 8)] : null,
+        )),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: red, foregroundColor: Colors.white,
+          textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: .4),
+          shadowColor: red, elevation: 8,
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: red, foregroundColor: Colors.white,
+          textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: .4),
+          shadowColor: red, elevation: 8,
+        ),
+      ),
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -.5,
+          shadows: [Shadow(color: Color(0x99FF1744), blurRadius: 12)]),
+        headlineMedium: TextStyle(fontWeight: FontWeight.w900,
+          shadows: [Shadow(color: Color(0x88FF1744), blurRadius: 10)]),
+        titleLarge: TextStyle(fontWeight: FontWeight.w800,
+          shadows: [Shadow(color: Color(0x55FF1744), blurRadius: 7)]),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true, fillColor: panel,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
@@ -120,10 +165,20 @@ class _AppShellState extends State<AppShell> {
     ];
     return Scaffold(
       appBar: AppBar(
-        title: const Row(children: [
-          Icon(Icons.bolt, color: red), SizedBox(width: 8),
-          Text('InSaNe ', style: TextStyle(fontWeight: FontWeight.w900, shadows: [Shadow(color: red.withValues(alpha: .55), blurRadius: 10)])),
-          Text('STRAPS', style: TextStyle(color: red, fontWeight: FontWeight.w900, shadows: [Shadow(color: red, blurRadius: 8), Shadow(color: red, blurRadius: 18)])),
+        title: Row(children: [
+          Container(
+            width: 38, height: 38, padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: Colors.black, borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: red.withValues(alpha: .8)),
+              boxShadow: [BoxShadow(color: red.withValues(alpha: .25), blurRadius: 12)],
+            ),
+            child: ClipRRect(borderRadius: BorderRadius.circular(8),
+              child: Image.asset('assets/app_icon.png', fit: BoxFit.contain)),
+          ),
+          const SizedBox(width: 9),
+          const Text('InSaNe ', style: TextStyle(fontWeight: FontWeight.w900, shadows: [Shadow(color: Color(0xCCFF1744), blurRadius: 10)])),
+          const Text('STRAPS', style: TextStyle(color: red, fontWeight: FontWeight.w900, shadows: [Shadow(color: red, blurRadius: 8), Shadow(color: red, blurRadius: 18)])),
         ]),
         actions: [Padding(padding: const EdgeInsets.only(right: 16), child: Center(child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -151,8 +206,9 @@ class _AppShellState extends State<AppShell> {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(colors: [Color(0xFF1B160A), Color(0xFF171116), Color(0xFF100D10)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        border: Border.all(color: gold.withValues(alpha: .45)),
+        gradient: const LinearGradient(colors: [Color(0xFF260711), Color(0xFF171116), Color(0xFF090609)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        border: Border.all(color: red.withValues(alpha: .72)),
+        boxShadow: [BoxShadow(color: red.withValues(alpha: .12), blurRadius: 22, spreadRadius: 1)],
       ),
       child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('CONTROL YOUR SETUP', style: TextStyle(color: gold, letterSpacing: 2, fontSize: 11, fontWeight: FontWeight.w800)),
@@ -211,7 +267,7 @@ class _AppShellState extends State<AppShell> {
     const SizedBox(height: 18),
     Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xFF20190D), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: .45))),
+      decoration: BoxDecoration(color: const Color(0xFF210811), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFFF1744).withValues(alpha: .55))),
       child: const Text('Compatibility note: Roblox Fast Flags are not guaranteed to work on Android, and this app currently validates JSON only—it does not inject flags into Roblox or Free Fire. We will only enable controls that are supported by Android and the games.', style: TextStyle(color: Color(0xFFE4D7B2), height: 1.4, fontSize: 12)),
     ),
   ]);
@@ -242,13 +298,13 @@ class _AppShellState extends State<AppShell> {
   }
 
   Widget _gameCard(String name, String subtitle, IconData icon, String packageName, String storeUrlText) => Card(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0x66D4AF37))),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0xAAFF1744))),
     clipBehavior: Clip.antiAlias,
     child: InkWell(
       onTap: () => _openGame(name, packageName, storeUrlText),
       child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
         Container(width: 54, height: 54, decoration: BoxDecoration(
-          color: const Color(0x22D4AF37), borderRadius: BorderRadius.circular(16),
+          color: const Color(0x22FF1744), borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: gold.withValues(alpha: .14), blurRadius: 16)],
         ), child: Icon(icon, color: gold, size: 30)),
         const SizedBox(width: 14),
