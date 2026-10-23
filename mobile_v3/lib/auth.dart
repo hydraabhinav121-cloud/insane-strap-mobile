@@ -288,7 +288,7 @@ class _AuthPageState extends State<AuthPage> {
             TextField(controller: _password, obscureText: true,
               onSubmitted: (_) => _authenticate(),
               decoration: InputDecoration(labelText: 'Password',
-                helperText: _ownerSetup ? 'Use a strong password with at least 12 characters' : (_signup ? 'At least 10 characters' : null)),
+                helperText: _ownerSetup ? 'Use a strong password with at least 12 characters' : (_signup ? 'At least 10 characters' : null))),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: _busy ? null : (_ownerSetup ? _bootstrapOwner : _authenticate),
