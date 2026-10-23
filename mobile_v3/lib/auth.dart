@@ -109,9 +109,13 @@ class _AuthPageState extends State<AuthPage> {
       await action();
     } catch (e) {
       final raw = e.toString();
-      final friendly = e is SocketException || raw.contains('Failed host lookup') || raw.contains('No address associated with hostname')
-          ? 'Account server could not be reached. Check the Render service URL, DNS, and backend deployment.'
-          : raw.replaceFirst('Exception: ', '');
+      final friendly = raw.contains('Database is not configured') || raw.contains('database_configured')
+          ? 'Account server is online, but its database is not connected. In Render, add DATABASE_URL to the insane-straps-api service using the internal URL from the insane-straps-db database, then redeploy.'
+          : raw.contains('JWT_SECRET is not configured') || raw.contains('Authentication is not configured')
+              ? 'Account server configuration is incomplete. Check JWT_SECRET in Render Environment.'
+              : e is SocketException || raw.contains('Failed host lookup') || raw.contains('No address associated with hostname') || raw.contains('Connection timed out')
+                  ? 'Could not connect to the account server. Check internet access, then open https://insane-straps-api.onrender.com/health in your phone browser to test it.'
+                  : raw.replaceFirst('Exception: ', '');
       if (mounted) setState(() => _message = friendly);
     } finally {
       if (mounted) setState(() => _busy = false);
