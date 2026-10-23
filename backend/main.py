@@ -15,7 +15,22 @@ JWT_SECRET = os.getenv("JWT_SECRET", "")
 OWNER_EMAIL = os.getenv("OWNER_EMAIL", "hydraabhinav121@gmail.com").lower()
 BOOTSTRAP = os.getenv("OWNER_BOOTSTRAP_TOKEN", "")
 passwords = PasswordHash.recommended()
-app = FastAPI(title="Insane Straps API", version="1.0")
+app = FastAPI(title="Insane Straps API", version="1.1")
+
+@app.get("/health")
+def health():
+    checks = {"database_configured": engine is not None, "jwt_configured": bool(JWT_SECRET), "owner_bootstrap_configured": bool(BOOTSTRAP)}
+    if engine is not None:
+        try:
+            with engine.connect() as c:
+                c.execute(text("SELECT 1"))
+            checks["database_reachable"] = True
+        except Exception:
+            checks["database_reachable"] = False
+    else:
+        checks["database_reachable"] = False
+    checks["ready"] = checks["database_reachable"] and checks["jwt_configured"]
+    return checks
 
 def db():
     if engine is None:

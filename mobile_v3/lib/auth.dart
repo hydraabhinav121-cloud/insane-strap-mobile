@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String _apiBase = 'https://insane-straps-api.onrender.com';
 const Color _authRed = Color(0xFFFF334F);
+const Color _authGold = Color(0xFFD4AF37);
 const Color _authPanel = Color(0xFF17171D);
 
 class AuthPage extends StatefulWidget {
@@ -75,9 +76,12 @@ class _AuthPageState extends State<AuthPage> {
     final client = HttpClient();
     try {
       final uri = Uri.parse('$_apiBase$path');
-      final request = method == 'GET'
-          ? await client.getUrl(uri)
-          : await client.postUrl(uri);
+      final request = switch (method) {
+        'GET' => await client.getUrl(uri),
+        'DELETE' => await client.deleteUrl(uri),
+        'PUT' => await client.putUrl(uri),
+        _ => await client.postUrl(uri),
+      };
       request.headers.set(HttpHeaders.acceptHeader, 'application/json');
       if (body != null) {
         request.headers.contentType = ContentType.json;

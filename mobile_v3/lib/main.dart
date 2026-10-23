@@ -13,6 +13,38 @@ const panel = Color(0xFF17171D);
 const discordInvite = 'https://discord.gg/vaEXj2Yyey';
 const discordUserUrl = 'https://discord.com/users/985486854159753256';
 
+class IntroSplash extends StatefulWidget {
+  const IntroSplash({super.key});
+  @override State<IntroSplash> createState() => _IntroSplashState();
+}
+class _IntroSplashState extends State<IntroSplash> with TickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 2300))..forward();
+  static const _letters = 'InSaNe';
+  @override void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 2600), () {
+      if (mounted) Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const AppShell()));
+    });
+  }
+  @override void dispose() { _c.dispose(); super.dispose(); }
+  @override Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFF030304),
+    body: AnimatedBuilder(animation: _c, builder: (_, __) {
+      final t = Curves.easeOutCubic.transform(_c.value);
+      return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Transform.scale(scale: .65 + .35*t, child: Opacity(opacity: t, child: const Icon(Icons.workspace_premium_rounded, size: 104, color: gold))),
+        const SizedBox(height: 26),
+        Row(mainAxisSize: MainAxisSize.min, children: List.generate(_letters.length, (i) =>
+          Opacity(opacity: ((_c.value*1.7)-i*.15).clamp(0.0, 1.0),
+            child: Transform.translate(offset: Offset(0, 8*(1-((_c.value*1.7)-i*.15).clamp(0.0,1.0))),
+              child: Text(_letters[i], style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: 2, color: Color(0xFFE7C46A))))))),
+        const SizedBox(height: 10),
+        Opacity(opacity: t, child: const Text('STRAPS', style: TextStyle(letterSpacing: 8, fontSize: 12, color: red, fontWeight: FontWeight.bold))),
+      ]));
+    }),
+  );
+}
+
 class InsaneStrapsApp extends StatelessWidget {
   const InsaneStrapsApp({super.key});
   @override
@@ -30,7 +62,7 @@ class InsaneStrapsApp extends StatelessWidget {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
       ),
     ),
-    home: const AppShell(),
+    home: const IntroSplash(),
   );
 }
 
@@ -63,7 +95,7 @@ class _AppShellState extends State<AppShell> {
       body: SafeArea(child: IndexedStack(index: tab, children: pages)),
       bottomNavigationBar: NavigationBar(
         selectedIndex: tab, onDestinationSelected: (v) => setState(() => tab = v),
-        backgroundColor: panel, indicatorColor: red.withValues(alpha: .18),
+        backgroundColor: panel, indicatorColor: gold.withValues(alpha: .20),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.sports_esports_outlined), label: 'Games'),
@@ -80,11 +112,11 @@ class _AppShellState extends State<AppShell> {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(colors: [Color(0xFF34121B), Color(0xFF171116), Color(0xFF111116)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        border: Border.all(color: red.withValues(alpha: .35)),
+        gradient: const LinearGradient(colors: [Color(0xFF1B160A), Color(0xFF171116), Color(0xFF100D10)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        border: Border.all(color: gold.withValues(alpha: .45)),
       ),
       child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('CONTROL YOUR SETUP', style: TextStyle(color: red, letterSpacing: 2, fontSize: 11, fontWeight: FontWeight.w800)),
+        Text('CONTROL YOUR SETUP', style: TextStyle(color: gold, letterSpacing: 2, fontSize: 11, fontWeight: FontWeight.w800)),
         SizedBox(height: 14),
         Text('Your game.\nYour settings.', style: TextStyle(fontSize: 30, height: 1.08, fontWeight: FontWeight.w900)),
         SizedBox(height: 12),
@@ -111,7 +143,7 @@ class _AppShellState extends State<AppShell> {
       _statusRow(Icons.info_outline, 'Build channel', status),
     ]))),
     const SizedBox(height: 8),
-    const Text('Important: settings are edited locally in this build. Game process controls and account licensing require platform-specific integration and a secure backend.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
+    const Text('Note: settings are edited locally in this build. Game process controls and account licensing require platform-specific integration and a secure backend.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
   ]);
 
 
