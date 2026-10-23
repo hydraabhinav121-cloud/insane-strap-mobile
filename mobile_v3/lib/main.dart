@@ -24,7 +24,7 @@ class _FloatingToolsState extends State<_FloatingTools> {
   String info = 'Choose a tool below.';
   Future<void> toggle() async {
     setState(() => open = !open);
-    await FlutterOverlayWindow.resizeOverlay(open ? 310 : 76, open ? 430 : 76);
+    await FlutterOverlayWindow.resizeOverlay(open ? 310 : 76, open ? 430 : 76, true);
   }
   @override Widget build(BuildContext context) => Material(
     color: Colors.transparent,
