@@ -51,6 +51,8 @@ class _AuthPageState extends State<AuthPage> {
     if (saved == null || saved.isEmpty) return;
     try {
       final result = await _request('GET', '/me', token: saved);
+      await prefs.setString('insane_straps_role', (result['role'] ?? 'user').toString().toLowerCase());
+      await prefs.setBool('insane_straps_is_pro', result['is_pro'] == true || (result['role'] ?? '').toString().toLowerCase() == 'owner' || (result['role'] ?? '').toString().toLowerCase() == 'vip');
       if (!mounted) return;
       setState(() {
         _token = saved;
