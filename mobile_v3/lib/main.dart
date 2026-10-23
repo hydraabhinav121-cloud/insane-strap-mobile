@@ -1,0 +1,242 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+
+void main() => runApp(const InsaneStrapsApp());
+
+const red = Color(0xFFFF334F);
+const bg = Color(0xFF0A0A0D);
+const panel = Color(0xFF17171D);
+const upiId = 'akanksha1105@fam';
+const ltcAddress = 'LaLmC3Hwtuf72fd59S4deUoBUpdxNS14dK';
+
+class InsaneStrapsApp extends StatelessWidget {
+  const InsaneStrapsApp({super.key});
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    debugShowCheckedModeBanner: false,
+    title: 'InSaNe Straps',
+    theme: ThemeData(
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: bg,
+      colorScheme: ColorScheme.fromSeed(seedColor: red, brightness: Brightness.dark),
+      useMaterial3: true,
+      cardTheme: const CardThemeData(color: panel, elevation: 0),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true, fillColor: panel,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+      ),
+    ),
+    home: const AppShell(),
+  );
+}
+
+class AppShell extends StatefulWidget {
+  const AppShell({super.key});
+  @override State<AppShell> createState() => _AppShellState();
+}
+class _AppShellState extends State<AppShell> {
+  int tab = 0;
+  final flagsController = TextEditingController(text: '{\n  "DFIntTaskSchedulerTargetFps": 120\n}');
+  String status = 'Local preview';
+  @override void dispose() { flagsController.dispose(); super.dispose(); }
+  @override Widget build(BuildContext context) {
+    final pages = [
+      _home(), _plans(), _flags(), _account()
+    ];
+    return Scaffold(
+      appBar: AppBar(
+        title: const Row(children: [
+          Icon(Icons.bolt, color: red), SizedBox(width: 8),
+          Text('InSaNe ', style: TextStyle(fontWeight: FontWeight.w900)),
+          Text('STRAPS', style: TextStyle(color: red, fontWeight: FontWeight.w900)),
+        ]),
+        actions: [Padding(padding: const EdgeInsets.only(right: 16), child: Center(child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(color: red.withOpacity(.13), borderRadius: BorderRadius.circular(30)),
+          child: const Text('MOBILE', style: TextStyle(color: red, fontSize: 11, fontWeight: FontWeight.bold)),
+        )))],
+      ),
+      body: SafeArea(child: IndexedStack(index: tab, children: pages)),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: tab, onDestinationSelected: (v) => setState(() => tab = v),
+        backgroundColor: panel, indicatorColor: red.withOpacity(.18),
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.workspace_premium_outlined), label: 'Pro'),
+          NavigationDestination(icon: Icon(Icons.code_rounded), label: 'Fast Flags'),
+          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Account'),
+        ],
+      ),
+    );
+  }
+
+  Widget _home() => ListView(padding: const EdgeInsets.all(18), children: [
+    Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(colors: [Color(0xFF34121B), Color(0xFF171116), Color(0xFF111116)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        border: Border.all(color: red.withOpacity(.35)),
+      ),
+      child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('CONTROL YOUR SETUP', style: TextStyle(color: red, letterSpacing: 2, fontSize: 11, fontWeight: FontWeight.w800)),
+        SizedBox(height: 14),
+        Text('Your game.\nYour settings.', style: TextStyle(fontSize: 30, height: 1.08, fontWeight: FontWeight.w900)),
+        SizedBox(height: 12),
+        Text('A clean mobile companion for profiles, Fast Flags and account tools.', style: TextStyle(color: Colors.white70, height: 1.4)),
+      ]),
+    ),
+    const SizedBox(height: 18),
+    const Text('QUICK ACCESS', style: TextStyle(letterSpacing: 1.5, fontSize: 12, color: Colors.white54, fontWeight: FontWeight.bold)),
+    const SizedBox(height: 10),
+    Row(children: [
+      Expanded(child: _quick('Profiles', Icons.layers_outlined, 'Manage presets', () => setState(() => tab = 2))),
+      const SizedBox(width: 10),
+      Expanded(child: _quick('Fast Flags', Icons.tune, 'Edit JSON', () => setState(() => tab = 2))),
+    ]),
+    const SizedBox(height: 10),
+    _quick('Explore InSaNe Pro', Icons.workspace_premium, 'Plans from ₹39', () => setState(() => tab = 1), wide: true),
+    const SizedBox(height: 18),
+    _section('APP STATUS'),
+    Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
+      _statusRow(Icons.phone_android, 'Platform', 'Android'),
+      const Divider(height: 22, color: Colors.white10),
+      _statusRow(Icons.verified_user_outlined, 'Account services', 'Backend required'),
+      const Divider(height: 22, color: Colors.white10),
+      _statusRow(Icons.info_outline, 'Build channel', status),
+    ]))),
+    const SizedBox(height: 8),
+    const Text('Important: settings are edited locally in this build. Game process controls and account licensing require platform-specific integration and a secure backend.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
+  ]);
+
+  Widget _plans() => ListView(padding: const EdgeInsets.all(18), children: [
+    const Text('Choose your plan', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
+    const SizedBox(height: 6),
+    const Text('Free for everyone. Upgrade when you want more.', style: TextStyle(color: Colors.white60)),
+    const SizedBox(height: 18),
+    _planCard('FREE', '₹0', 'Standard access', false, () => _snack('You are viewing the Free plan.')),
+    _planCard('WEEKLY PRO', '₹39', '7 days', false, () => _paymentSheet('Weekly Pro', 39)),
+    _planCard('MONTHLY PRO', '₹79', '30 days', true, () => _paymentSheet('Monthly Pro', 79)),
+    _planCard('YEARLY PRO', '₹390', '365 days', false, () => _paymentSheet('Yearly Pro', 390)),
+    _planCard('LIFETIME PRO', '₹699', 'No scheduled expiry', false, () => _paymentSheet('Lifetime Pro', 699)),
+    const SizedBox(height: 8),
+    const Text('Payments are not verified automatically in this build. Do not treat a payment screenshot as confirmation; Pro must be activated by the owner after checking the transaction.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
+  ]);
+
+  Widget _planCard(String name, String price, String term, bool featured, VoidCallback onTap) => Card(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: featured ? red : Colors.white10, width: featured ? 1.4 : 1)),
+    child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+      Container(width: 42, height: 42, decoration: BoxDecoration(color: red.withOpacity(.13), borderRadius: BorderRadius.circular(13)), child: const Icon(Icons.bolt, color: red)),
+      const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(name, style: const TextStyle(fontSize: 12, color: red, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        const SizedBox(height: 4), Text(term, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+      ])),
+      Text(price, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900)),
+      const SizedBox(width: 8),
+      IconButton(onPressed: onTap, icon: const Icon(Icons.arrow_forward_ios, size: 16)),
+    ])),
+  );
+
+  void _paymentSheet(String plan, int rupees) {
+    showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: panel, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))), builder: (ctx) => Padding(
+      padding: EdgeInsets.fromLTRB(20, 22, 20, 24 + MediaQuery.of(ctx).viewInsets.bottom),
+      child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+        Text(plan, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 4), Text('Amount due: ₹$rupees', style: const TextStyle(color: red, fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 18), const Text('UPI PAYMENT', style: TextStyle(letterSpacing: 1.2, color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8), _copyBox(upiId),
+        const SizedBox(height: 18), const Text('LITECOIN PAYMENT', style: TextStyle(letterSpacing: 1.2, color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8), _copyBox(ltcAddress),
+        const SizedBox(height: 8), LiveLtcQuote(inr: rupees),
+        const SizedBox(height: 14),
+        const Text('After paying, contact the owner with your transaction reference. This app does not verify payment or activate Pro yet.', style: TextStyle(color: Colors.white60, height: 1.4, fontSize: 12)),
+      ])),
+    ));
+  }
+
+  Widget _copyBox(String value) => Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white10)),
+    child: Row(children: [Expanded(child: SelectableText(value, style: const TextStyle(fontSize: 12))), IconButton(tooltip: 'Copy', onPressed: () { Clipboard.setData(ClipboardData(text: value)); _snack('Copied to clipboard'); }, icon: const Icon(Icons.copy, color: red, size: 19))]),
+  );
+
+  Widget _flags() => ListView(padding: const EdgeInsets.all(18), children: [
+    const Text('Fast Flags', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
+    const SizedBox(height: 6), const Text('Edit and validate a JSON configuration.', style: TextStyle(color: Colors.white60)),
+    const SizedBox(height: 14),
+    TextField(controller: flagsController, minLines: 12, maxLines: 22, style: const TextStyle(fontFamily: 'monospace', fontSize: 13), decoration: const InputDecoration(hintText: 'Paste JSON here', alignLabelWithHint: true)),
+    const SizedBox(height: 12),
+    Row(children: [
+      Expanded(child: OutlinedButton.icon(onPressed: () { flagsController.text = '{\n  "DFIntTaskSchedulerTargetFps": 120\n}'; }, icon: const Icon(Icons.restart_alt), label: const Text('Reset sample'))),
+      const SizedBox(width: 10),
+      Expanded(child: FilledButton.icon(onPressed: () { try { final v = jsonDecode(flagsController.text); if (v is! Map<String, dynamic>) throw const FormatException('Root must be an object'); _snack('Valid JSON · ${v.length} top-level keys'); } catch (e) { _snack('Invalid JSON: ${e is FormatException ? e.message : e}'); } }, icon: const Icon(Icons.check_circle_outline), label: const Text('Validate')),
+    ]),
+    const SizedBox(height: 12),
+    const Text('Validation checks JSON syntax only. It does not prove a flag is supported or safe to apply. Export/apply integrations are not connected in this build.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
+  ]);
+
+  Widget _account() => ListView(padding: const EdgeInsets.all(18), children: [
+    const Text('Account', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
+    const SizedBox(height: 16),
+    Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(children: [
+      const CircleAvatar(radius: 34, backgroundColor: Color(0xFF35131B), child: Icon(Icons.person, color: red, size: 34)),
+      const SizedBox(height: 12), const Text('Guest account', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 4), const Text('Sign-in backend not connected', style: TextStyle(color: Colors.white54, fontSize: 12)),
+      const SizedBox(height: 16), SizedBox(width: double.infinity, child: FilledButton(onPressed: () => _snack('Secure sign-in requires the backend to be configured.'), child: const Text('Sign in / Create account'))),
+    ]))),
+    const SizedBox(height: 14),
+    _quick('Pro key redemption', Icons.key_outlined, 'Server validation not connected', () => _snack('Key redemption is not enabled until the backend is connected.'), wide: true),
+    const SizedBox(height: 10),
+    _quick('Owner dashboard', Icons.admin_panel_settings_outlined, 'Server authorization required', () => _snack('Owner dashboard is not available in this client-only build.'), wide: true),
+    const SizedBox(height: 16),
+    const Text('For safety, admin rights and Pro entitlements must be checked by a backend, never by a hard-coded username or a client-side switch.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
+  ]);
+
+  Widget _section(String text) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(text, style: const TextStyle(letterSpacing: 1.5, fontSize: 12, color: Colors.white54, fontWeight: FontWeight.bold)));
+  Widget _statusRow(IconData icon, String label, String value) => Row(children: [Icon(icon, color: red, size: 20), const SizedBox(width: 12), Expanded(child: Text(label)), Text(value, style: const TextStyle(color: Colors.white54, fontSize: 12))]);
+  Widget _quick(String title, IconData icon, String subtitle, VoidCallback onTap, {bool wide = false}) => Card(child: InkWell(borderRadius: BorderRadius.circular(16), onTap: onTap, child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [Container(width: 42, height: 42, decoration: BoxDecoration(color: red.withOpacity(.12), borderRadius: BorderRadius.circular(13)), child: Icon(icon, color: red)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12))])), if (wide) const Icon(Icons.chevron_right, color: Colors.white54)]))));
+  void _snack(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+}
+
+class LiveLtcQuote extends StatefulWidget {
+  final int inr;
+  const LiveLtcQuote({super.key, required this.inr});
+  @override State<LiveLtcQuote> createState() => _LiveLtcQuoteState();
+}
+class _LiveLtcQuoteState extends State<LiveLtcQuote> {
+  double? ltcInr, ltcUsd;
+  String? error;
+  bool loading = true;
+  @override void initState() { super.initState(); _load(); }
+  Future<void> _load() async {
+    try {
+      final response = await http.get(Uri.parse('https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=inr,usd')).timeout(const Duration(seconds: 12));
+      if (response.statusCode != 200) throw Exception('Rate provider unavailable');
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final coin = data['litecoin'] as Map<String, dynamic>;
+      if (!mounted) return;
+      setState(() { ltcInr = (coin['inr'] as num).toDouble(); ltcUsd = (coin['usd'] as num).toDouble(); loading = false; });
+    } catch (_) { if (mounted) setState(() { loading = false; error = 'Live LTC rate unavailable. Try again later; do not guess the amount.'; }); }
+  }
+  @override Widget build(BuildContext context) {
+    if (loading) return const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator());
+    if (error != null || ltcInr == null || ltcUsd == null || ltcInr! <= 0 || ltcUsd! <= 0) return Text(error ?? 'Rate unavailable', style: const TextStyle(color: Colors.orangeAccent, fontSize: 12));
+    final amount = widget.inr / ltcInr!;
+    final usd = widget.inr / ltcInr! * ltcUsd!;
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(color: const Color(0xFF101014), borderRadius: BorderRadius.circular(12)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('ESTIMATED LIVE CONVERSION', style: TextStyle(color: red, fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Text('${amount.toStringAsFixed(6)} LTC  ≈  $${usd.toStringAsFixed(2)} USD', style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        const Text('Indicative quote only. Network fees and rate changes may affect the final amount. Verify the address and amount before sending.', style: TextStyle(color: Colors.white54, fontSize: 11, height: 1.35)),
+        Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () { setState(() { loading = true; error = null; }); _load(); }, child: const Text('Refresh rate'))),
+      ]),
+    );
+  }
+}
