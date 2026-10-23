@@ -64,7 +64,17 @@ class _AuthPageState extends State<AuthPage> {
       if (message.contains('Invalid or expired session') || message.contains('Sign in required') || message.contains('401')) {
         await prefs.remove('insane_straps_token');
       }
-      if (mounted) setState(() => _message = 'Could not reach the account server. Check connection and try again.');
+      if (mounted) {
+        final raw = e.toString();
+        final message = raw.contains('Database is not configured') || raw.contains('database_configured')
+            ? 'The account API is reachable, but its database is not configured. Check DATABASE_URL in Render.'
+            : raw.contains('JWT_SECRET is not configured') || raw.contains('Authentication is not configured')
+                ? 'The account server authentication settings are incomplete. Check JWT_SECRET in Render.'
+                : e is SocketException || raw.contains('Failed host lookup') || raw.contains('Connection timed out') || raw.contains('Connection refused')
+                    ? 'Cannot reach the account API. Open https://insane-straps-api.onrender.com/health in your browser. If it fails there too, the Render service may be down or misconfigured.'
+                    : raw.replaceFirst('Exception: ', '');
+        setState(() => _message = message);
+      }
     }
   }
 
@@ -177,7 +187,7 @@ class _AuthPageState extends State<AuthPage> {
         _user = profile;
         _message = _signup ? 'Account created successfully.' : 'Signed in successfully.';
       });
-      if (profile['role'] == 'owner') await _loadOwnerData();
+      if ((profile['role'] ?? '').toString().toLowerCase() == 'owner') await _loadOwnerData();
     });
   }
 
