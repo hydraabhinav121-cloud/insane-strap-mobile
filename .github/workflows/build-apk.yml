@@ -72,7 +72,7 @@ jobs:
           a = '{http://schemas.android.com/apk/res/android}'
           for name in ['SYSTEM_ALERT_WINDOW', 'FOREGROUND_SERVICE', 'FOREGROUND_SERVICE_SPECIAL_USE']:
               if not any(e.tag == 'uses-permission' and e.get(a+'name') == 'android.permission.'+name for e in root):
-                  ET.SubElement(root, 'uses-permission', {a+'name': 'android.permission.'+name})
+                  root.insert(list(root).index(root.find('application')), ET.Element('uses-permission', {a+'name': 'android.permission.'+name}))
           queries = root.find('queries')
           if queries is None:
               queries = ET.Element('queries')
