@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'auth.dart';
 
 void main() => runApp(const InsaneStrapsApp());
 
@@ -281,22 +282,7 @@ class _AppShellState extends State<AppShell> {
     const Text('Validation checks JSON syntax only. It does not prove a flag is supported or safe to apply. Export/apply integrations are not connected in this build.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
   ]);
 
-  Widget _account() => ListView(padding: const EdgeInsets.all(18), children: [
-    const Text('Account', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
-    const SizedBox(height: 16),
-    Card(child: Padding(padding: const EdgeInsets.all(18), child: Column(children: [
-      const CircleAvatar(radius: 34, backgroundColor: Color(0xFF35131B), child: Icon(Icons.person, color: red, size: 34)),
-      const SizedBox(height: 12), const Text('Guest account', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
-      const SizedBox(height: 4), const Text('Sign-in backend not connected', style: TextStyle(color: Colors.white54, fontSize: 12)),
-      const SizedBox(height: 16), SizedBox(width: double.infinity, child: FilledButton(onPressed: () => _snack('Secure sign-in requires the backend to be configured.'), child: const Text('Sign in / Create account'))),
-    ]))),
-    const SizedBox(height: 14),
-    _quick('Pro key redemption', Icons.key_outlined, 'Server validation not connected', () => _snack('Key redemption is not enabled until the backend is connected.'), wide: true),
-    const SizedBox(height: 10),
-    _quick('Owner dashboard', Icons.admin_panel_settings_outlined, 'Server authorization required', () => _snack('Owner dashboard is not available in this client-only build.'), wide: true),
-    const SizedBox(height: 16),
-    const Text('For safety, admin rights and Pro entitlements must be checked by a backend, never by a hard-coded username or a client-side switch.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
-  ]);
+  Widget _account() => const AuthPage();
 
   Widget _section(String text) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(text, style: const TextStyle(letterSpacing: 1.5, fontSize: 12, color: Colors.white54, fontWeight: FontWeight.bold)));
   Widget _statusRow(IconData icon, String label, String value) => Row(children: [Icon(icon, color: red, size: 20), const SizedBox(width: 12), Expanded(child: Text(label)), Text(value, style: const TextStyle(color: Colors.white54, fontSize: 12))]);
