@@ -44,10 +44,11 @@ class _FloatingToolsState extends State<_FloatingTools> {
 }
 
 
-const red = Color(0xFFFF334F);
-const gold = Color(0xFFD4AF37);
-const bg = Color(0xFF0A0A0D);
-const panel = Color(0xFF17171D);
+// Blood-red neon identity: black surfaces, crimson accents, and red glow.
+const red = Color(0xFFFF1744);
+const gold = Color(0xFFFF1744);
+const bg = Color(0xFF070608);
+const panel = Color(0xFF151116);
 const discordInvite = 'https://discord.gg/vaEXj2Yyey';
 const discordUserUrl = 'https://discord.com/users/985486854159753256';
 
@@ -75,7 +76,7 @@ class _IntroSplashState extends State<IntroSplash> with TickerProviderStateMixin
         Row(mainAxisSize: MainAxisSize.min, children: List.generate(_letters.length, (i) =>
           Opacity(opacity: ((_c.value*1.7)-i*.15).clamp(0.0, 1.0),
             child: Transform.translate(offset: Offset(0, 8*(1-((_c.value*1.7)-i*.15).clamp(0.0,1.0))),
-              child: Text(_letters[i], style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: 2, color: Color(0xFFE7C46A))))))),
+              child: Text(_letters[i], style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: 2, color: Color(0xFFFF1744), shadows: [Shadow(color: Color(0xFFFF1744), blurRadius: 8), Shadow(color: Color(0xCCFF1744), blurRadius: 20), Shadow(color: Color(0x88FF1744), blurRadius: 34)]))))),
         const SizedBox(height: 10),
         Opacity(opacity: t, child: const Text('STRAPS', style: TextStyle(letterSpacing: 8, fontSize: 12, color: red, fontWeight: FontWeight.bold))),
       ]));
@@ -121,8 +122,8 @@ class _AppShellState extends State<AppShell> {
       appBar: AppBar(
         title: const Row(children: [
           Icon(Icons.bolt, color: red), SizedBox(width: 8),
-          Text('InSaNe ', style: TextStyle(fontWeight: FontWeight.w900)),
-          Text('STRAPS', style: TextStyle(color: red, fontWeight: FontWeight.w900)),
+          Text('InSaNe ', style: TextStyle(fontWeight: FontWeight.w900, shadows: [Shadow(color: red.withValues(alpha: .55), blurRadius: 10)])),
+          Text('STRAPS', style: TextStyle(color: red, fontWeight: FontWeight.w900, shadows: [Shadow(color: red, blurRadius: 8), Shadow(color: red, blurRadius: 18)])),
         ]),
         actions: [Padding(padding: const EdgeInsets.only(right: 16), child: Center(child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -156,7 +157,7 @@ class _AppShellState extends State<AppShell> {
       child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('CONTROL YOUR SETUP', style: TextStyle(color: gold, letterSpacing: 2, fontSize: 11, fontWeight: FontWeight.w800)),
         SizedBox(height: 14),
-        Text('Your game.\nYour settings.', style: TextStyle(fontSize: 30, height: 1.08, fontWeight: FontWeight.w900)),
+        Text('Your game.\nYour settings.', style: TextStyle(fontSize: 30, height: 1.08, fontWeight: FontWeight.w900, shadows: [Shadow(color: red.withValues(alpha: .65), blurRadius: 12), Shadow(color: red.withValues(alpha: .25), blurRadius: 24)])),
         SizedBox(height: 12),
         Text('A clean mobile companion for profiles, Fast Flags and account tools.', style: TextStyle(color: Colors.white70, height: 1.4)),
       ]),
