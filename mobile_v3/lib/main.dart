@@ -196,6 +196,7 @@ class _AppShellState extends State<AppShell> {
   Color customAccent = red;
   String customFont = 'Roboto';
   double customGlow = 12;
+  double customFontSize = 16;
   String? customImagePath;
   bool customPremium = false;
   bool premiumUser = false;
@@ -215,6 +216,7 @@ class _AppShellState extends State<AppShell> {
       customAccent = Color(p.getInt('straps_accent') ?? red.value);
       customFont = p.getString('straps_font') ?? 'Roboto';
       customGlow = p.getDouble('straps_glow') ?? 12;
+      customFontSize = p.getDouble('straps_font_size') ?? 16;
       customImagePath = p.getString('straps_wallpaper');
     });
   }
@@ -223,16 +225,24 @@ class _AppShellState extends State<AppShell> {
     await p.setInt('straps_accent', customAccent.value);
     await p.setString('straps_font', customFont);
     await p.setDouble('straps_glow', customGlow);
+    await p.setDouble('straps_font_size', customFontSize);
     if (customImagePath != null) await p.setString('straps_wallpaper', customImagePath!);
     else await p.remove('straps_wallpaper');
     if (mounted) _snack('Appearance saved on this device.');
   }
   @override void dispose() { flagsController.dispose(); super.dispose(); }
   @override Widget build(BuildContext context) {
+    final baseTheme = Theme.of(context);
+    final appTheme = baseTheme.copyWith(
+      colorScheme: baseTheme.colorScheme.copyWith(primary: customAccent, secondary: customAccent),
+      textTheme: baseTheme.textTheme.apply(fontFamily: customFont, fontSizeFactor: customFontSize / 16),
+      appBarTheme: baseTheme.appBarTheme.copyWith(iconTheme: IconThemeData(color: customAccent)),
+      sliderTheme: baseTheme.sliderTheme.copyWith(activeTrackColor: customAccent, thumbColor: customAccent),
+    );
     final pages = premiumUser
         ? [_home(), _games(), _flags(), _account(), _customization()]
         : [_home(), _games(), _plans(), _flags(), _account(), _customization()];
-    return Scaffold(
+    return Theme(data: appTheme, child: Scaffold(
       appBar: AppBar(
         title: Row(children: [
           Container(
@@ -271,7 +281,7 @@ class _AppShellState extends State<AppShell> {
           const NavigationDestination(icon: Icon(Icons.palette_outlined), label: 'Customize'),
         ],
       ),
-    );
+    ));
   }
 
   Widget _home() => ListView(padding: const EdgeInsets.all(18), children: [
@@ -345,18 +355,25 @@ class _AppShellState extends State<AppShell> {
     ),
   ]);
 
-  Future<void> _enableFloatingTools() async {
+  Future<bool> _ensureFloatingTools() async {
     try {
       var ok = await FlutterOverlayWindow.isPermissionGranted();
       if (!ok) ok = await FlutterOverlayWindow.requestPermission() ?? false;
-      if (!ok) { if (mounted) _snack('Allow Display over other apps for InSaNe Straps.'); return; }
-      await FlutterOverlayWindow.showOverlay(height: 92, width: 92, alignment: OverlayAlignment.centerRight, enableDrag: true, overlayTitle: 'InSaNe Straps', overlayContent: 'Tap logo for game tools');
-      if (mounted) _snack('Floating icon enabled.');
-    } catch (e) { if (mounted) _snack('Overlay error: $e'); }
+      if (!ok) { if (mounted) _snack('Allow Display over other apps for InSaNe Straps.'); return false; }
+      await FlutterOverlayWindow.showOverlay(height: 92, width: 92, alignment: OverlayAlignment.centerRight, enableDrag: true, overlayTitle: 'InSaNe Straps', overlayContent: 'Tap logo to open / minimize tools');
+      return true;
+    } catch (e) { if (mounted) _snack('Overlay error: $e'); return false; }
+  }
+
+  Future<void> _enableFloatingTools() async {
+    final enabled = await _ensureFloatingTools();
+    if (enabled && mounted) _snack('Floating icon enabled. Tap it to open or minimize the tools.');
   }
 
   Future<void> _openGame(String name, String packageName, String storeUrlText) async {
     try {
+      // Show the floating icon before launching games from this hub.
+      await _ensureFloatingTools();
       await AndroidIntent(
         action: 'android.intent.action.MAIN',
         category: 'android.intent.category.LAUNCHER',
@@ -602,6 +619,9 @@ class _AppShellState extends State<AppShell> {
         onChanged: (v) { if (v != null) setState(() => customFont = v); },
       ),
       const SizedBox(height: 18),
+      Text('APP FONT SIZE · ${customFontSize.round()}', style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+      Slider(value: customFontSize, min: 12, max: 24, divisions: 12, activeColor: customAccent, onChanged: (v) => setState(() => customFontSize = v)),
+      const SizedBox(height: 12),
       Text('NEON GLOW · ${customGlow.round()}', style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
       Slider(value: customGlow, min: 0, max: 28, divisions: 14, activeColor: customAccent, onChanged: (v) => setState(() => customGlow = v)),
       const SizedBox(height: 8),
