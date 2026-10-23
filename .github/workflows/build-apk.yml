@@ -45,7 +45,17 @@ jobs:
         run: |
           flutter create --platforms=android --org com.insanestraps --project-name insane_straps_next /tmp/insane_android_template
           cp -R /tmp/insane_android_template/android mobile_v3/android
-          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' mobile_v3/android/app/build.gradle.kts
+          GRADLE_FILE="mobile_v3/android/app/build.gradle.kts"
+          if [ ! -f "$GRADLE_FILE" ]; then
+            echo "Expected Gradle file not found:"
+            find mobile_v3/android -maxdepth 3 -type f -print
+            exit 1
+          fi
+          # Pin the app compile SDK to API 36 regardless of the Flutter template default.
+          sed -i -E 's/compileSdk[[:space:]]*=[[:space:]]*flutter\.compileSdkVersion/compileSdk = 36/; s/compileSdk[[:space:]]*=[[:space:]]*[0-9]+/compileSdk = 36/' "$GRADLE_FILE"
+          echo "Effective Android SDK settings:"
+          grep -nE 'compileSdk|targetSdk|minSdk' "$GRADLE_FILE"
+          grep -qE 'compileSdk[[:space:]]*=[[:space:]]*36' "$GRADLE_FILE" || { echo "Failed to set compileSdk to 36"; exit 1; }
       - name: Resolve packages
         working-directory: mobile_v3
         run: flutter pub get
