@@ -31,6 +31,8 @@ jobs:
         run: |
           flutter create --platforms=android --org com.insanestraps --project-name insane_straps_next /tmp/insane_android_template
           cp -R /tmp/insane_android_template/android mobile_v3/android
+          # Newer AndroidX plugin metadata requires Android API 36 at compile time.
+          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' mobile_v3/android/app/build.gradle.kts
       - name: Resolve packages
         working-directory: mobile_v3
         run: flutter pub get
