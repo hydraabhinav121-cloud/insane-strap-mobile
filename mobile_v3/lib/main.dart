@@ -21,14 +21,32 @@ class _FloatingTools extends StatefulWidget {
 }
 class _FloatingToolsState extends State<_FloatingTools> {
   bool open = false;
+  bool transitioning = false;
   String info = 'Choose a tool below.';
   Future<void> toggle() async {
+    if (transitioning) return;
+    transitioning = true;
     final next = !open;
     try {
-      await FlutterOverlayWindow.resizeOverlay(next ? 320 : 88, next ? 500 : 88, true);
-      if (mounted) setState(() => open = next);
+      // Resize the Android overlay first, then update its Flutter content.
+      await FlutterOverlayWindow.resizeOverlay(
+        next ? 320 : 88,
+        next ? 520 : 88,
+        true,
+      );
+      if (mounted) setState(() { open = next; info = next ? 'Tools ready. Choose an action below.' : 'Tools minimized.'; });
+    } catch (e) {
+      if (mounted) setState(() => info = 'Could not resize the floating window. Re-enable Display over other apps and tap the icon again.');
+    } finally {
+      transitioning = false;
+    }
+  }
+
+  Future<void> unload() async {
+    try {
+      await FlutterOverlayWindow.closeOverlay();
     } catch (_) {
-      if (mounted) setState(() => info = 'Could not resize overlay. Allow Display over other apps, then reopen the floating tools.');
+      if (mounted) setState(() => info = 'Could not remove overlay. Close it from the app and Android overlay settings.');
     }
   }
   @override Widget build(BuildContext context) => Material(
@@ -37,14 +55,17 @@ class _FloatingToolsState extends State<_FloatingTools> {
       width: 320, padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: const Color(0xF508070A), border: Border.all(color: red, width: 2), borderRadius: BorderRadius.circular(18), boxShadow: const [BoxShadow(color: Color(0x99FF1744), blurRadius: 18, spreadRadius: 1)]),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Row(children: [Image.asset('assets/app_icon.png', width: 38, height: 38), const Expanded(child: Text('InSaNe STRAPS', style: TextStyle(color: gold, fontWeight: FontWeight.bold))), IconButton(tooltip: 'Remove floating icon and window', onPressed: () => FlutterOverlayWindow.closeOverlay(), icon: const Icon(Icons.close, color: red))]),
+        Row(children: [Image.asset('assets/app_icon.png', width: 38, height: 38), const Expanded(child: Text('InSaNe STRAPS', style: TextStyle(color: gold, fontWeight: FontWeight.bold))), IconButton(tooltip: 'Unload floating icon and window', onPressed: unload, icon: const Icon(Icons.close, color: red))]),
         _tool('FPS tips', 'Lower game graphics and enable your phone Game Mode. No guaranteed FPS unlock.'),
         _tool('Fast Flags', 'JSON editing is available in the main app; flags are not injected into games.'),
         _tool('Reconnect', 'Automatic rejoin is not implemented; use the game’s own controls.'),
         _tool('Performance', 'Per-game CPU/GPU/FPS monitoring is not connected in this build.'),
         _tool('Capture', 'Screen recording needs Android MediaProjection consent and is not enabled yet.'),
         Padding(padding: const EdgeInsets.all(8), child: Text(info, style: const TextStyle(color: Colors.white70, fontSize: 11))),
-        TextButton(onPressed: toggle, child: const Text('MINIMIZE', style: TextStyle(color: gold))),
+        Row(children: [
+          Expanded(child: TextButton(onPressed: toggle, child: const Text('MINIMIZE', style: TextStyle(color: gold)))),
+          Expanded(child: TextButton.icon(onPressed: unload, icon: const Icon(Icons.power_settings_new, size: 16), label: const Text('UNLOAD', style: TextStyle(color: red)))),
+        ]),
       ]),
     ) : GestureDetector(
       behavior: HitTestBehavior.opaque,
