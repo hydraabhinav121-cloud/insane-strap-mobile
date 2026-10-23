@@ -42,7 +42,7 @@ class _AppShellState extends State<AppShell> {
   @override void dispose() { flagsController.dispose(); super.dispose(); }
   @override Widget build(BuildContext context) {
     final pages = [
-      _home(), _plans(), _flags(), _account()
+      _home(), _games(), _plans(), _flags(), _account()
     ];
     return Scaffold(
       appBar: AppBar(
@@ -63,6 +63,7 @@ class _AppShellState extends State<AppShell> {
         backgroundColor: panel, indicatorColor: red.withValues(alpha: .18),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.sports_esports_outlined), label: 'Games'),
           NavigationDestination(icon: Icon(Icons.workspace_premium_outlined), label: 'Pro'),
           NavigationDestination(icon: Icon(Icons.code_rounded), label: 'Fast Flags'),
           NavigationDestination(icon: Icon(Icons.person_outline), label: 'Account'),
@@ -109,6 +110,69 @@ class _AppShellState extends State<AppShell> {
     const SizedBox(height: 8),
     const Text('Important: settings are edited locally in this build. Game process controls and account licensing require platform-specific integration and a secure backend.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
   ]);
+
+
+  Widget _games() => ListView(padding: const EdgeInsets.all(18), children: [
+    const Text('Game dashboard', style: TextStyle(fontSize: 27, fontWeight: FontWeight.w900)),
+    const SizedBox(height: 6),
+    const Text('Choose a game and open its official app or store page.', style: TextStyle(color: Colors.white60)),
+    const SizedBox(height: 18),
+    _gameCard('Roblox', 'Launch Roblox or install it', Icons.videogame_asset_rounded,
+      'https://www.roblox.com/home', 'https://play.google.com/store/apps/details?id=com.roblox.client'),
+    const SizedBox(height: 12),
+    _gameCard('Free Fire', 'Launch Free Fire or install it', Icons.local_fire_department_rounded,
+      'https://ff.garena.com/', 'https://play.google.com/store/apps/details?id=com.dts.freefireth'),
+    const SizedBox(height: 20),
+    const Text('STRAPS TOOLS', style: TextStyle(letterSpacing: 1.5, fontSize: 12, color: Colors.white54, fontWeight: FontWeight.bold)),
+    const SizedBox(height: 10),
+    _quick('FPS & performance tips', Icons.speed, 'Open optimization guide', () => _showToolInfo('FPS & Boost', 'This screen can show supported Android performance tips. It cannot force a higher FPS cap or overclock your device; those depend on the game, device, and Android permissions.'), wide: true),
+    const SizedBox(height: 10),
+    _quick('Fast Flags', Icons.tune, 'Edit and validate JSON', () => setState(() => tab = 3), wide: true),
+    const SizedBox(height: 10),
+    _quick('AFK / reconnect helper', Icons.autorenew, 'Compatibility information', () => _showToolInfo('AFK & reconnect', 'A normal Android app cannot guarantee anti-AFK behavior or prevent a game server from disconnecting you. Automatic reconnect requires supported game-specific integration and may be restricted by the game.'), wide: true),
+    const SizedBox(height: 10),
+    _quick('Screenshot & screen recording', Icons.screen_share_outlined, 'Android capture permissions', () => _showToolInfo('Screen capture', 'Screen recording and floating overlays are not wired up in this build. Android requires a native MediaProjection consent flow for capture and special overlay permission for a floating Straps icon. Nothing is being recorded yet.'), wide: true),
+    const SizedBox(height: 18),
+    Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: const Color(0xFF20190D), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: .45))),
+      child: const Text('Compatibility note: Roblox Fast Flags are not guaranteed to work on Android, and this app currently validates JSON only—it does not inject flags into Roblox or Free Fire. We will only enable controls that are supported by Android and the games.', style: TextStyle(color: Color(0xFFE4D7B2), height: 1.4, fontSize: 12)),
+    ),
+  ]);
+
+  Widget _gameCard(String name, String subtitle, IconData icon, String launchUrlText, String storeUrlText) => Card(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0x44D4AF37))),
+    child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+      Container(width: 54, height: 54, decoration: BoxDecoration(color: const Color(0x22D4AF37), borderRadius: BorderRadius.circular(16)), child: Icon(icon, color: const Color(0xFFD4AF37), size: 30)),
+      const SizedBox(width: 14),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+        const SizedBox(height: 4),
+        Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+      ])),
+      PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert),
+        onSelected: (v) async {
+          final uri = Uri.parse(v == 'launch' ? launchUrlText : storeUrlText);
+          final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+          if (!ok && mounted) _snack('Could not open $name link.');
+        },
+        itemBuilder: (_) => const [
+          PopupMenuItem(value: 'launch', child: Text('Open game website')),
+          PopupMenuItem(value: 'store', child: Text('Open Play Store')),
+        ],
+      ),
+    ])),
+  );
+
+  void _showToolInfo(String title, String message) {
+    showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+      backgroundColor: panel,
+      title: Text(title),
+      content: Text(message, style: const TextStyle(height: 1.45, color: Colors.white70)),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Got it'))],
+    ));
+  }
 
   Widget _plans() => ListView(padding: const EdgeInsets.all(18), children: [
     const Text('Choose your plan', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
