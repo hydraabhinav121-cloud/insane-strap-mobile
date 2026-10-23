@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:android_intent_plus/android_intent.dart';
 import 'auth.dart';
 
 void main() => runApp(const InsaneStrapsApp());
 
 const red = Color(0xFFFF334F);
+const gold = Color(0xFFD4AF37);
 const bg = Color(0xFF0A0A0D);
 const panel = Color(0xFF17171D);
 const discordInvite = 'https://discord.gg/vaEXj2Yyey';
@@ -20,7 +22,7 @@ class InsaneStrapsApp extends StatelessWidget {
     theme: ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: bg,
-      colorScheme: ColorScheme.fromSeed(seedColor: red, brightness: Brightness.dark),
+      colorScheme: ColorScheme.fromSeed(seedColor: gold, brightness: Brightness.dark),
       useMaterial3: true,
       cardTheme: const CardThemeData(color: panel, elevation: 0),
       inputDecorationTheme: InputDecorationTheme(
@@ -118,11 +120,11 @@ class _AppShellState extends State<AppShell> {
     const SizedBox(height: 6),
     const Text('Choose a game and open its official app or store page.', style: TextStyle(color: Colors.white60)),
     const SizedBox(height: 18),
-    _gameCard('Roblox', 'Launch Roblox or install it', Icons.videogame_asset_rounded,
-      'https://www.roblox.com/home', 'https://play.google.com/store/apps/details?id=com.roblox.client'),
+    _gameCard('Roblox', 'Open the installed game or its Play Store page', Icons.videogame_asset_rounded,
+      'com.roblox.client', 'https://play.google.com/store/apps/details?id=com.roblox.client'),
     const SizedBox(height: 12),
-    _gameCard('Free Fire', 'Launch Free Fire or install it', Icons.local_fire_department_rounded,
-      'https://ff.garena.com/', 'https://play.google.com/store/apps/details?id=com.dts.freefireth'),
+    _gameCard('Free Fire', 'Open the installed game or its Play Store page', Icons.local_fire_department_rounded,
+      'com.dts.freefireth', 'https://play.google.com/store/apps/details?id=com.dts.freefireth'),
     const SizedBox(height: 20),
     const Text('STRAPS TOOLS', style: TextStyle(letterSpacing: 1.5, fontSize: 12, color: Colors.white54, fontWeight: FontWeight.bold)),
     const SizedBox(height: 10),
@@ -141,7 +143,7 @@ class _AppShellState extends State<AppShell> {
     ),
   ]);
 
-  Widget _gameCard(String name, String subtitle, IconData icon, String launchUrlText, String storeUrlText) => Card(
+  Widget _gameCard(String name, String subtitle, IconData icon, String packageName, String storeUrlText) => Card(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0x44D4AF37))),
     child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
       Container(width: 54, height: 54, decoration: BoxDecoration(color: const Color(0x22D4AF37), borderRadius: BorderRadius.circular(16)), child: Icon(icon, color: const Color(0xFFD4AF37), size: 30)),
@@ -154,12 +156,23 @@ class _AppShellState extends State<AppShell> {
       PopupMenuButton<String>(
         icon: const Icon(Icons.more_vert),
         onSelected: (v) async {
-          final uri = Uri.parse(v == 'launch' ? launchUrlText : storeUrlText);
-          final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-          if (!ok && mounted) _snack('Could not open $name link.');
+          if (v == 'launch') {
+            try {
+              await AndroidIntent(
+                action: 'android.intent.action.MAIN',
+                category: 'android.intent.category.LAUNCHER',
+                package: packageName,
+              ).launch();
+              return;
+            } catch (_) {
+              if (mounted) _snack('$name may not be installed. Opening its store page.');
+            }
+          }
+          final ok = await launchUrl(Uri.parse(storeUrlText), mode: LaunchMode.externalApplication);
+          if (!ok && mounted) _snack('Could not open $name store page.');
         },
         itemBuilder: (_) => const [
-          PopupMenuItem(value: 'launch', child: Text('Open game website')),
+          PopupMenuItem(value: 'launch', child: Text('Open installed game')),
           PopupMenuItem(value: 'store', child: Text('Open Play Store')),
         ],
       ),

@@ -27,6 +27,7 @@ class _AuthPageState extends State<AuthPage> {
   String _message = '';
   List<dynamic> _users = [];
   List<dynamic> _logs = [];
+  List<dynamic> _keys = [];
 
   @override
   void initState() {
@@ -56,8 +57,12 @@ class _AuthPageState extends State<AuthPage> {
         _user = Map<String, dynamic>.from(result);
       });
       if (_user?['role'] == 'owner') await _loadOwnerData();
-    } catch (_) {
-      await prefs.remove('insane_straps_token');
+    } catch (e) {
+      final message = e.toString();
+      if (message.contains('Invalid or expired session') || message.contains('Sign in required') || message.contains('401')) {
+        await prefs.remove('insane_straps_token');
+      }
+      if (mounted) setState(() => _message = 'Could not reach the account server. Check connection and try again.');
     }
   }
 
@@ -165,11 +170,13 @@ class _AuthPageState extends State<AuthPage> {
     final results = await Future.wait([
       _request('GET', '/owner/users', token: token),
       _request('GET', '/owner/logs', token: token),
+      _request('GET', '/owner/keys', token: token),
     ]);
     if (!mounted) return;
     setState(() {
       _users = (results[0]['users'] as List<dynamic>? ?? []);
       _logs = (results[1]['logs'] as List<dynamic>? ?? []);
+      _keys = (results[2]['keys'] as List<dynamic>? ?? []);
     });
   }
 
@@ -229,7 +236,7 @@ class _AuthPageState extends State<AuthPage> {
     await prefs.remove('insane_straps_token');
     if (!mounted) return;
     setState(() {
-      _token = null; _user = null; _users = []; _logs = [];
+      _token = null; _user = null; _users = []; _logs = []; _keys = [];
       _password.clear(); _message = 'Signed out.';
     });
   }
@@ -303,6 +310,7 @@ class _AuthPageState extends State<AuthPage> {
 
   Widget _accountView() {
     final owner = _user?['role'] == 'owner';
+    final isPro = owner || _user?['is_pro'] == true;
     final proUntil = _user?['pro_until'];
     return ListView(
       padding: const EdgeInsets.all(18),
@@ -322,19 +330,34 @@ class _AuthPageState extends State<AuthPage> {
                 Text(_user?['email']?.toString() ?? 'No email set',
                   style: const TextStyle(color: Colors.white54, fontSize: 12)),
               ])),
-              Chip(label: Text(owner ? 'OWNER' : 'USER'),
-                backgroundColor: owner ? _authRed.withValues(alpha: .2) : Colors.white10),
+              Chip(label: Text(owner ? 'OWNER · PRO' : (isPro ? 'PREMIUM' : 'FREE')),
+                backgroundColor: (owner || isPro) ? const Color(0x33D4AF37) : Colors.white10,
+                labelStyle: TextStyle(color: (owner || isPro) ? const Color(0xFFD4AF37) : Colors.white70)),
             ]),
             const Divider(height: 26),
             Text('Role: ${_user?['role'] ?? 'user'}'),
             const SizedBox(height: 6),
-            Text('Pro expiry: ${proUntil ?? 'Free plan'}'),
+            Text('Pro expiry: ${owner ? 'Owner · Premium enabled' : (proUntil ?? (isPro ? 'Premium active' : 'Free plan'))}'),
             const SizedBox(height: 14),
             OutlinedButton.icon(onPressed: _signOut,
               icon: const Icon(Icons.logout), label: const Text('Sign out')),
           ]),
         )),
-        if (!owner) ...[
+        if ((_user?['email'] == null || _user?['email'].toString().isEmpty == true) && !owner) ...[
+          const SizedBox(height: 16),
+          const Text('Link email (optional)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          TextField(controller: _email, keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(labelText: 'Email address')),
+          const SizedBox(height: 8),
+          FilledButton.tonal(onPressed: _busy ? null : () => _run(() async {
+            await _request('POST', '/account/email', token: _token,
+              body: {'email': _email.text.trim()});
+            final profile = await _request('GET', '/me', token: _token);
+            if (mounted) setState(() { _user = profile; _message = 'Email linked. Verification is not configured yet.'; });
+          }), child: const Text('Link email')),
+        ],
+        if (!owner && !isPro) ...[
           const SizedBox(height: 16),
           const Text('Redeem a premium key', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
@@ -358,6 +381,22 @@ class _AuthPageState extends State<AuthPage> {
             dense: true, title: Text(u['username']?.toString() ?? 'Unknown'),
             subtitle: Text(u['email']?.toString() ?? 'No email'),
             trailing: Text(u['role']?.toString() ?? 'user'),
+          ))),
+          const SizedBox(height: 14),
+          Text('Premium keys (${_keys.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
+          ..._keys.take(100).map((k) => Card(color: _authPanel, child: ListTile(
+            dense: true,
+            title: Text('${k['duration_days']} days · ${k['redeemed_by'] == null ? 'Unused' : 'Redeemed'}'),
+            subtitle: Text('Created: ${k['created_at'] ?? ''}'),
+            trailing: k['redeemed_by'] == null ? IconButton(
+              tooltip: 'Revoke unused key',
+              icon: const Icon(Icons.delete_outline, color: _authRed),
+              onPressed: _busy ? null : () => _run(() async {
+                await _request('DELETE', '/owner/keys/${k['id']}', token: _token);
+                await _loadOwnerData();
+                if (mounted) setState(() => _message = 'Unused key revoked.');
+              }),
+            ) : const Icon(Icons.check_circle_outline, color: Colors.greenAccent),
           ))),
           const SizedBox(height: 14),
           Text('Recent audit logs (${_logs.length})', style: const TextStyle(fontWeight: FontWeight.bold)),

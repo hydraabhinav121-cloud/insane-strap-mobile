@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'mobile_v3/**'
+      - 'backend/**'
+      - 'main.py'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
@@ -51,9 +53,19 @@ jobs:
           echo "App Gradle SDK settings:"
           grep -nE 'compileSdk|targetSdk|minSdk' "$GRADLE_FILE"
           grep -qE 'compileSdk[[:space:]]*=[[:space:]]*36' "$GRADLE_FILE"
+      - name: Generate crown launcher icon
+        run: |
+          python3 -m pip install --quiet cairosvg
+          python3 - <<'PY'
+          import cairosvg
+          cairosvg.svg2png(url='mobile_v3/assets/insane_crown.svg', write_to='mobile_v3/assets/app_icon.png', output_width=512, output_height=512)
+          PY
       - name: Resolve packages
         working-directory: mobile_v3
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart run flutter_launcher_icons
+          dart run flutter_native_splash:create
       - name: Force Android plugins to compile with API 36
         run: |
           PUB_CACHE="${PUB_CACHE:-$HOME/.pub-cache}"

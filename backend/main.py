@@ -145,10 +145,44 @@ def redeem(b: Redeem, u=Depends(current)):
         audit(c, "premium_key_redeemed", u["username"], "days=" + str(k["duration_days"]))
     return {"message": "Premium activated", "duration_days": k["duration_days"]}
 
+class LinkEmail(BaseModel):
+    email: str = Field(min_length=5, max_length=254, pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+@app.post("/account/email")
+def link_email(b: LinkEmail, u=Depends(current)):
+    email = b.email.strip().lower()
+    with db() as c:
+        exists = c.execute(text("SELECT 1 FROM users WHERE lower(email)=:e AND username<>:u"), {"e": email, "u": u["username"]}).first()
+        if exists:
+            raise HTTPException(409, "Email is already linked to another account")
+        c.execute(text("UPDATE users SET email=:e WHERE username=:u"), {"e": email, "u": u["username"]})
+        audit(c, "email_linked", u["username"])
+    return {"message": "Email linked. Verify this address before relying on it for account recovery."}
+
+@app.get("/owner/keys")
+def list_keys(u=Depends(owner)):
+    with db() as c:
+        rows = c.execute(text("SELECT id,duration_days,redeemed_by,created_at,redeemed_at FROM premium_keys ORDER BY created_at DESC LIMIT 500")).mappings().all()
+    return {"keys": [dict(x) for x in rows]}
+
+@app.delete("/owner/keys/{key_id}")
+def revoke_key(key_id: int, u=Depends(owner)):
+    with db() as c:
+        row = c.execute(text("SELECT id,redeemed_by FROM premium_keys WHERE id=:id"), {"id": key_id}).mappings().first()
+        if not row:
+            raise HTTPException(404, "Premium key not found")
+        if row["redeemed_by"]:
+            raise HTTPException(409, "Already redeemed keys cannot be revoked")
+        c.execute(text("DELETE FROM premium_keys WHERE id=:id"), {"id": key_id})
+        audit(c, "premium_key_revoked", u["username"], "key_id=" + str(key_id))
+    return {"message": "Unused premium key revoked"}
+
 @app.get("/me")
 def me(u=Depends(current)):
     with db() as c:
         row = c.execute(text("SELECT username,email,role,pro_until,created_at FROM users WHERE username=:u"), {"u": u["username"]}).mappings().first()
     if not row:
         raise HTTPException(404, "Account not found")
-    return dict(row)
+    result = dict(row)
+    result["is_pro"] = result["role"] == "owner" or bool(result["pro_until"] and result["pro_until"] > datetime.now(timezone.utc))
+    return result

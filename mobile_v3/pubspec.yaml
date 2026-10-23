@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   url_launcher: ^6.3.1
+  android_intent_plus: ^5.3.0
   file_picker: ^8.1.2
   shared_preferences: ^2.3.2
 
@@ -17,6 +18,24 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.6
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/app_icon.png
+  adaptive_icon_background: '#08080A'
+  adaptive_icon_foreground: assets/app_icon.png
+
+flutter_native_splash:
+  color: '#050506'
+  image: assets/app_icon.png
+  android: true
+  ios: false
+  fullscreen: true
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/app_icon.png
