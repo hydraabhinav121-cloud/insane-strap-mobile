@@ -24,7 +24,7 @@ class _FloatingToolsState extends State<_FloatingTools> {
   String info = 'Choose a tool below.';
   Future<void> toggle() async {
     setState(() => open = !open);
-    await FlutterOverlayWindow.resizeOverlay(open ? 310 : 76, open ? 430 : 76, enableDrag: true);
+    await FlutterOverlayWindow.resizeOverlay(open ? 310 : 76, open ? 430 : 76, 0);
   }
   @override Widget build(BuildContext context) => Material(
     color: Colors.transparent,
@@ -96,10 +96,10 @@ class InsaneStrapsApp extends StatelessWidget {
     theme: ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: bg,
-      colorScheme: ColorScheme.fromSeed(seedColor: customAccent, brightness: Brightness.dark).copyWith(
-        primary: customAccent, secondary: customAccent, surface: panel,
+      colorScheme: ColorScheme.fromSeed(seedColor: red, brightness: Brightness.dark).copyWith(
+        primary: red, secondary: red, surface: panel,
       ),
-      fontFamily: customFont,
+      fontFamily: 'Roboto',
       useMaterial3: true,
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF090609), foregroundColor: Colors.white,
@@ -114,19 +114,19 @@ class InsaneStrapsApp extends StatelessWidget {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: panel,
-        indicatorColor: customAccent.withValues(alpha: .20),
+        indicatorColor: red.withValues(alpha: .20),
         labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
           fontWeight: states.contains(WidgetState.selected) ? FontWeight.w800 : FontWeight.w500,
-          color: states.contains(WidgetState.selected) ? customAccent : Colors.white70,
+          color: states.contains(WidgetState.selected) ? red : Colors.white70,
           shadows: states.contains(WidgetState.selected)
-              ? [Shadow(color: customAccent, blurRadius: customGlow)] : null,
+              ? [Shadow(color: red, blurRadius: 12)] : null,
         )),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: customAccent, foregroundColor: Colors.white,
+          backgroundColor: red, foregroundColor: Colors.white,
           textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: .4),
-          shadowColor: customAccent, elevation: 8,
+          shadowColor: red, elevation: 8,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(

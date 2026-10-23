@@ -302,7 +302,7 @@ class _AuthPageState extends State<AuthPage> {
               }),
               child: Text(_ownerSetup ? 'Back to sign in' : 'Initial owner setup (first run only)'),
             ),
-            if (_message.isNotEmpty) ...[
+            if (_message.isNotEmpty) ...<Widget>[
               const SizedBox(height: 12),
               Text(_message, style: TextStyle(color: _message.contains('success') ? Colors.greenAccent : _authRed)),
             ],
