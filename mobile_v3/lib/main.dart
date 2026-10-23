@@ -23,8 +23,13 @@ class _FloatingToolsState extends State<_FloatingTools> {
   bool open = false;
   String info = 'Choose a tool below.';
   Future<void> toggle() async {
-    setState(() => open = !open);
-    await FlutterOverlayWindow.resizeOverlay(open ? 320 : 88, open ? 500 : 88, true);
+    final next = !open;
+    try {
+      await FlutterOverlayWindow.resizeOverlay(next ? 320 : 88, next ? 500 : 88, true);
+      if (mounted) setState(() => open = next);
+    } catch (_) {
+      if (mounted) setState(() => info = 'Could not resize overlay. Allow Display over other apps, then reopen the floating tools.');
+    }
   }
   @override Widget build(BuildContext context) => Material(
     color: Colors.transparent,
@@ -41,7 +46,21 @@ class _FloatingToolsState extends State<_FloatingTools> {
         Padding(padding: const EdgeInsets.all(8), child: Text(info, style: const TextStyle(color: Colors.white70, fontSize: 11))),
         TextButton(onPressed: toggle, child: const Text('MINIMIZE', style: TextStyle(color: gold))),
       ]),
-    ) : GestureDetector(onTap: toggle, child: Container(width: 68, height: 68, padding: const EdgeInsets.all(7), decoration: BoxDecoration(color: const Color(0xF508070A), shape: BoxShape.circle, border: Border.all(color: red, width: 2.5), boxShadow: const [BoxShadow(color: Color(0xAAFF1744), blurRadius: 16, spreadRadius: 2)]), child: Image.asset('assets/app_icon.png', fit: BoxFit.contain))),
+    ) : GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: toggle,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutBack,
+        width: 84, height: 84, padding: const EdgeInsets.all(7),
+        decoration: BoxDecoration(
+          color: const Color(0xF508070A), shape: BoxShape.circle,
+          border: Border.all(color: red, width: 2.5),
+          boxShadow: const [BoxShadow(color: Color(0xAAFF1744), blurRadius: 18, spreadRadius: 3)],
+        ),
+        child: Image.asset('assets/app_icon.png', fit: BoxFit.contain),
+      ),
+    ),
   );
   Widget _tool(String title, String detail) => ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: const Icon(Icons.bolt, color: red), title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), onTap: () => setState(() => info = detail));
 }
@@ -331,7 +350,7 @@ class _AppShellState extends State<AppShell> {
       var ok = await FlutterOverlayWindow.isPermissionGranted();
       if (!ok) ok = await FlutterOverlayWindow.requestPermission() ?? false;
       if (!ok) { if (mounted) _snack('Allow Display over other apps for InSaNe Straps.'); return; }
-      await FlutterOverlayWindow.showOverlay(height: 76, width: 76, alignment: OverlayAlignment.centerRight, enableDrag: true, overlayTitle: 'InSaNe Straps', overlayContent: 'Tap logo for game tools');
+      await FlutterOverlayWindow.showOverlay(height: 92, width: 92, alignment: OverlayAlignment.centerRight, enableDrag: true, overlayTitle: 'InSaNe Straps', overlayContent: 'Tap logo for game tools');
       if (mounted) _snack('Floating icon enabled.');
     } catch (e) { if (mounted) _snack('Overlay error: $e'); }
   }
