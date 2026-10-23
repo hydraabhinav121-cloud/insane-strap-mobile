@@ -53,12 +53,21 @@ jobs:
           echo "App Gradle SDK settings:"
           grep -nE 'compileSdk|targetSdk|minSdk' "$GRADLE_FILE"
           grep -qE 'compileSdk[[:space:]]*=[[:space:]]*36' "$GRADLE_FILE"
-      - name: Generate crown launcher icon
+      - name: Generate launcher icon and splash image from uploaded logo
         run: |
-          python3 -m pip install --quiet cairosvg
+          python3 -m pip install --quiet pillow
           python3 - <<'PY'
-          import cairosvg
-          cairosvg.svg2png(url='mobile_v3/assets/insane_crown.svg', write_to='mobile_v3/assets/app_icon.png', output_width=512, output_height=512)
+          from PIL import Image, ImageOps
+          from pathlib import Path
+          source = Path('mobile_v3/assets/Screenshot_20261023_151845.jpg')
+          target = Path('mobile_v3/assets/app_icon.png')
+          if not source.exists():
+              raise SystemExit(f'Uploaded InSaNe crown logo not found: {source}')
+          image = Image.open(source).convert('RGB')
+          # Keep the complete original logo visible on the black background.
+          image = ImageOps.fit(image, (512, 512), method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
+          image.save(target, format='PNG', optimize=True)
+          print(f'Generated {target} from {source}: {image.size}')
           PY
       - name: Configure floating overlay manifest
         run: |
