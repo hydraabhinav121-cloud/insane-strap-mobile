@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
@@ -93,10 +96,10 @@ class InsaneStrapsApp extends StatelessWidget {
     theme: ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: bg,
-      colorScheme: ColorScheme.fromSeed(seedColor: red, brightness: Brightness.dark).copyWith(
-        primary: red, secondary: const Color(0xFFFF4D6D), surface: panel,
+      colorScheme: ColorScheme.fromSeed(seedColor: customAccent, brightness: Brightness.dark).copyWith(
+        primary: customAccent, secondary: customAccent, surface: panel,
       ),
-      fontFamily: 'Roboto',
+      fontFamily: customFont,
       useMaterial3: true,
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF090609), foregroundColor: Colors.white,
@@ -111,24 +114,24 @@ class InsaneStrapsApp extends StatelessWidget {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: panel,
-        indicatorColor: red.withValues(alpha: .20),
+        indicatorColor: customAccent.withValues(alpha: .20),
         labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
           fontWeight: states.contains(WidgetState.selected) ? FontWeight.w800 : FontWeight.w500,
-          color: states.contains(WidgetState.selected) ? red : Colors.white70,
+          color: states.contains(WidgetState.selected) ? customAccent : Colors.white70,
           shadows: states.contains(WidgetState.selected)
-              ? const [Shadow(color: red, blurRadius: 8)] : null,
+              ? [Shadow(color: customAccent, blurRadius: customGlow)] : null,
         )),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: red, foregroundColor: Colors.white,
+          backgroundColor: customAccent, foregroundColor: Colors.white,
           textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: .4),
-          shadowColor: red, elevation: 8,
+          shadowColor: customAccent, elevation: 8,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: red, foregroundColor: Colors.white,
+          backgroundColor: customAccent, foregroundColor: Colors.white,
           textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: .4),
           shadowColor: red, elevation: 8,
         ),
@@ -156,12 +159,37 @@ class AppShell extends StatefulWidget {
 }
 class _AppShellState extends State<AppShell> {
   int tab = 0;
+  Color customAccent = red;
+  String customFont = 'Roboto';
+  double customGlow = 12;
+  String? customImagePath;
+  bool customPremium = false;
   final flagsController = TextEditingController(text: '{\n  "DFIntTaskSchedulerTargetFps": 120\n}');
   String status = 'Local preview';
+  @override void initState() { super.initState(); _loadAppearance(); }
+  Future<void> _loadAppearance() async {
+    final p = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      customAccent = Color(p.getInt('straps_accent') ?? red.value);
+      customFont = p.getString('straps_font') ?? 'Roboto';
+      customGlow = p.getDouble('straps_glow') ?? 12;
+      customImagePath = p.getString('straps_wallpaper');
+    });
+  }
+  Future<void> _saveAppearance() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setInt('straps_accent', customAccent.value);
+    await p.setString('straps_font', customFont);
+    await p.setDouble('straps_glow', customGlow);
+    if (customImagePath != null) await p.setString('straps_wallpaper', customImagePath!);
+    else await p.remove('straps_wallpaper');
+    if (mounted) _snack('Appearance saved on this device.');
+  }
   @override void dispose() { flagsController.dispose(); super.dispose(); }
   @override Widget build(BuildContext context) {
     final pages = [
-      _home(), _games(), _plans(), _flags(), _account()
+      _home(), _games(), _plans(), _flags(), _account(), _customization()
     ];
     return Scaffold(
       appBar: AppBar(
@@ -196,6 +224,7 @@ class _AppShellState extends State<AppShell> {
           NavigationDestination(icon: Icon(Icons.workspace_premium_outlined), label: 'Pro'),
           NavigationDestination(icon: Icon(Icons.code_rounded), label: 'Fast Flags'),
           NavigationDestination(icon: Icon(Icons.person_outline), label: 'Account'),
+        NavigationDestination(icon: Icon(Icons.palette_outlined), label: 'Customize'),
         ],
       ),
     );
@@ -449,6 +478,92 @@ class _AppShellState extends State<AppShell> {
     const SizedBox(height: 12),
     const Text('Validation checks JSON syntax only. It does not prove a flag is supported or safe to apply. Export/apply integrations are not connected in this build.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
   ]);
+
+  Widget _customization() => ListView(padding: const EdgeInsets.all(18), children: [
+    const Text('Royal appearance', style: TextStyle(fontSize: 27, fontWeight: FontWeight.w900,
+      shadows: [Shadow(color: Color(0xAAFF1744), blurRadius: 12)])),
+    const SizedBox(height: 6),
+    const Text('Choose a font, neon accent, glow strength and optional wallpaper. Appearance settings are saved on this device.', style: TextStyle(color: Colors.white60, height: 1.4)),
+    const SizedBox(height: 18),
+    Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('LIVE PREVIEW', style: TextStyle(letterSpacing: 1.6, color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w800)),
+      const SizedBox(height: 12),
+      Container(
+        width: double.infinity, padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF080609),
+          image: customImagePath != null && File(customImagePath!).existsSync()
+            ? DecorationImage(image: FileImage(File(customImagePath!)), fit: BoxFit.cover, colorFilter: const ColorFilter.mode(Color(0x99000000), BlendMode.darken)) : null,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: customAccent.withValues(alpha: .85)),
+          boxShadow: [BoxShadow(color: customAccent.withValues(alpha: .28), blurRadius: customGlow + 6)],
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('InSaNe STRAPS', style: TextStyle(fontFamily: customFont, fontSize: 24, fontWeight: FontWeight.w900, color: customAccent, shadows: [Shadow(color: customAccent, blurRadius: customGlow), Shadow(color: customAccent.withValues(alpha: .6), blurRadius: customGlow * 1.8)])),
+          const SizedBox(height: 8),
+          Text('ROYAL • NEON • YOUR STYLE', style: TextStyle(fontFamily: customFont, color: Colors.white, letterSpacing: 1.4, shadows: [Shadow(color: customAccent, blurRadius: customGlow)])),
+        ]),
+      ),
+      const SizedBox(height: 18),
+      const Text('NEON COLOUR', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 10),
+      Wrap(spacing: 10, runSpacing: 10, children: [
+        _colourChoice(const Color(0xFFFF1744), 'Blood red'),
+        _colourChoice(const Color(0xFFFFC107), 'Royal gold'),
+        _colourChoice(const Color(0xFFB388FF), 'Violet'),
+        _colourChoice(const Color(0xFF00E5FF), 'Cyber blue'),
+        _colourChoice(const Color(0xFF39FF88), 'Neon green'),
+        _colourChoice(const Color(0xFFFF4FD8), 'Neon pink'),
+      ]),
+      const SizedBox(height: 18),
+      const Text('FONT STYLE', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      DropdownButtonFormField<String>(
+        value: customFont,
+        decoration: const InputDecoration(border: OutlineInputBorder(), filled: true),
+        items: const [
+          DropdownMenuItem(value: 'Roboto', child: Text('1 · Clean / Roboto')),
+          DropdownMenuItem(value: 'serif', child: Text('2 · Royal / Serif')),
+          DropdownMenuItem(value: 'monospace', child: Text('3 · Tech / Mono')),
+        ],
+        onChanged: (v) { if (v != null) setState(() => customFont = v); },
+      ),
+      const SizedBox(height: 18),
+      Text('NEON GLOW · ${customGlow.round()}', style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+      Slider(value: customGlow, min: 0, max: 28, divisions: 14, activeColor: customAccent, onChanged: (v) => setState(() => customGlow = v)),
+      const SizedBox(height: 8),
+      OutlinedButton.icon(
+        onPressed: () async {
+          final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: false);
+          final path = result?.files.single.path;
+          if (path != null && mounted) setState(() => customImagePath = path);
+        },
+        icon: const Icon(Icons.image_outlined), label: Text(customImagePath == null ? 'Choose wallpaper image' : 'Change wallpaper image'),
+      ),
+      if (customImagePath != null) TextButton.icon(onPressed: () => setState(() => customImagePath = null), icon: const Icon(Icons.delete_outline), label: const Text('Remove wallpaper')),
+      const SizedBox(height: 12),
+      SizedBox(width: double.infinity, child: FilledButton.icon(onPressed: _saveAppearance, icon: const Icon(Icons.save_outlined), label: const Text('Save appearance'))),
+    ]))),
+    const SizedBox(height: 8),
+    const Text('Note: these controls customize the app UI and preview. Downloaded font files are not installed dynamically in this build; the three built-in styles are available. Premium-only access must be enforced by the connected backend before this screen can securely lock advanced options.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
+  ]);
+
+  Widget _colourChoice(Color color, String label) => InkWell(
+    onTap: () => setState(() => customAccent = color),
+    borderRadius: BorderRadius.circular(12),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .10), borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: customAccent == color ? color : Colors.white24, width: customAccent == color ? 2 : 1),
+        boxShadow: customAccent == color ? [BoxShadow(color: color.withValues(alpha: .35), blurRadius: 12)] : null,
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Container(width: 13, height: 13, decoration: BoxDecoration(color: color, shape: BoxShape.circle, boxShadow: [BoxShadow(color: color.withValues(alpha: .7), blurRadius: 7)])),
+        const SizedBox(width: 7), Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+      ]),
+    ),
+  );
 
   Widget _account() => const AuthPage();
 
