@@ -24,7 +24,7 @@ class _FloatingToolsState extends State<_FloatingTools> {
   String info = 'Choose a tool below.';
   Future<void> toggle() async {
     setState(() => open = !open);
-    await FlutterOverlayWindow.resizeOverlay(open ? 310 : 76, open ? 430 : 76, 0);
+    await FlutterOverlayWindow.resizeOverlay(open ? 310 : 76, open ? 430 : 76);
   }
   @override Widget build(BuildContext context) => Material(
     color: Colors.transparent,
@@ -76,10 +76,25 @@ class _IntroSplashState extends State<IntroSplash> with TickerProviderStateMixin
       return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
         Transform.scale(scale: .65 + .35*t, child: Opacity(opacity: t, child: Image.asset('assets/app_icon.png', width: 124, height: 124, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.workspace_premium_rounded, size: 104, color: gold)))),
         const SizedBox(height: 26),
-        Row(mainAxisSize: MainAxisSize.min, children: List.generate(_letters.length, (i) =>
-          Opacity(opacity: ((_c.value*1.7)-i*.15).clamp(0.0, 1.0),
-            child: Transform.translate(offset: Offset(0, 8*(1-((_c.value*1.7)-i*.15).clamp(0.0,1.0))),
-              child: Text(_letters[i], style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: 2, color: Color(0xFFFF1744), shadows: [Shadow(color: Color(0xFFFF1744), blurRadius: 8), Shadow(color: Color(0xCCFF1744), blurRadius: 20), Shadow(color: Color(0x88FF1744), blurRadius: 34)]))))),
+        Row(mainAxisSize: MainAxisSize.min, children: List.generate(_letters.length, (i) {
+          final progress = ((_c.value * 1.7) - i * .15).clamp(0.0, 1.0);
+          return Opacity(
+            opacity: progress,
+            child: Transform.translate(
+              offset: Offset(0, 8 * (1 - progress)),
+              child: Text(
+                _letters[i],
+                style: const TextStyle(
+                  fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: 2,
+                  color: Color(0xFFFF1744),
+                  shadows: [Shadow(color: Color(0xFFFF1744), blurRadius: 8),
+                    Shadow(color: Color(0xCCFF1744), blurRadius: 20),
+                    Shadow(color: Color(0x88FF1744), blurRadius: 34)],
+                ),
+              ),
+            ),
+          );
+        })),
         const SizedBox(height: 10),
         Opacity(opacity: t, child: const Text('STRAPS', style: TextStyle(letterSpacing: 8, fontSize: 12, color: red, fontWeight: FontWeight.bold))),
       ]));
@@ -131,7 +146,7 @@ class InsaneStrapsApp extends StatelessWidget {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: customAccent, foregroundColor: Colors.white,
+          backgroundColor: red, foregroundColor: Colors.white,
           textStyle: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: .4),
           shadowColor: red, elevation: 8,
         ),
@@ -242,7 +257,7 @@ class _AppShellState extends State<AppShell> {
       child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('CONTROL YOUR SETUP', style: TextStyle(color: gold, letterSpacing: 2, fontSize: 11, fontWeight: FontWeight.w800)),
         SizedBox(height: 14),
-        Text('Your game.\nYour settings.', style: TextStyle(fontSize: 30, height: 1.08, fontWeight: FontWeight.w900, shadows: [Shadow(color: red.withValues(alpha: .65), blurRadius: 12), Shadow(color: red.withValues(alpha: .25), blurRadius: 24)])),
+        Text('Your game.\nYour settings.', style: TextStyle(fontSize: 30, height: 1.08, fontWeight: FontWeight.w900, shadows: [Shadow(color: Color(0xA6FF1744), blurRadius: 12), Shadow(color: Color(0x40FF1744), blurRadius: 24)])),
         SizedBox(height: 12),
         Text('A clean mobile companion for profiles, Fast Flags and account tools.', style: TextStyle(color: Colors.white70, height: 1.4)),
       ]),
