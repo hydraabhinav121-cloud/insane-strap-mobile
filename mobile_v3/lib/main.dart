@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const InsaneStrapsApp());
@@ -153,7 +152,7 @@ class _AppShellState extends State<AppShell> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.discord, color: red, size: 36),
+            const Icon(Icons.forum_rounded, color: red, size: 36),
             const SizedBox(height: 12),
             Text(plan, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
             const SizedBox(height: 4),
@@ -176,7 +175,7 @@ class _AppShellState extends State<AppShell> {
                   }
                   if (ctx.mounted && ok) Navigator.of(ctx).pop();
                 },
-                icon: const Icon(Icons.discord),
+                icon: const Icon(Icons.forum_rounded),
                 label: const Text('Continue to Discord server'),
               ),
             ),
