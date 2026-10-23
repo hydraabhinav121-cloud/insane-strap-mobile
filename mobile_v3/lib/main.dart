@@ -172,7 +172,7 @@ class _AppShellState extends State<AppShell> {
     Row(children: [
       Expanded(child: OutlinedButton.icon(onPressed: () { flagsController.text = '{\n  "DFIntTaskSchedulerTargetFps": 120\n}'; }, icon: const Icon(Icons.restart_alt), label: const Text('Reset sample'))),
       const SizedBox(width: 10),
-      Expanded(child: FilledButton.icon(onPressed: () { try { final v = jsonDecode(flagsController.text); if (v is! Map<String, dynamic>) throw const FormatException('Root must be an object'); _snack('Valid JSON · ${v.length} top-level keys'); } catch (e) { _snack('Invalid JSON: ${e is FormatException ? e.message : e}'); } }, icon: const Icon(Icons.check_circle_outline), label: const Text('Validate')),
+      Expanded(child: FilledButton.icon(onPressed: () { try { final v = jsonDecode(flagsController.text); if (v is! Map<String, dynamic>) throw const FormatException('Root must be an object'); _snack('Valid JSON · ${v.length} top-level keys'); } catch (e) { _snack('Invalid JSON: ${e is FormatException ? e.message : e}'); } }, icon: const Icon(Icons.check_circle_outline), label: const Text('Validate'))),
     ]),
     const SizedBox(height: 12),
     const Text('Validation checks JSON syntax only. It does not prove a flag is supported or safe to apply. Export/apply integrations are not connected in this build.', style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
@@ -232,7 +232,7 @@ class _LiveLtcQuoteState extends State<LiveLtcQuote> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('ESTIMATED LIVE CONVERSION', style: TextStyle(color: red, fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text('${amount.toStringAsFixed(6)} LTC  ≈  $${usd.toStringAsFixed(2)} USD', style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text('${amount.toStringAsFixed(6)} LTC  ≈  \${usd.toStringAsFixed(2)} USD', style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         const Text('Indicative quote only. Network fees and rate changes may affect the final amount. Verify the address and amount before sending.', style: TextStyle(color: Colors.white54, fontSize: 11, height: 1.35)),
         Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () { setState(() { loading = true; error = null; }); _load(); }, child: const Text('Refresh rate'))),
