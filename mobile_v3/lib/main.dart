@@ -114,7 +114,7 @@ class InsaneStrapsApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(seedColor: red, brightness: Brightness.dark).copyWith(
         primary: red, secondary: red, surface: panel,
       ),
-      fontFamily: 'Roboto',
+      fontFamily: 'serif',
       useMaterial3: true,
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF090609), foregroundColor: Colors.white,
@@ -220,8 +220,11 @@ class _AppShellState extends State<AppShell> {
               child: Image.asset('assets/app_icon.png', fit: BoxFit.contain)),
           ),
           const SizedBox(width: 9),
-          const Text('InSaNe ', style: TextStyle(fontWeight: FontWeight.w900, shadows: [Shadow(color: Color(0xCCFF1744), blurRadius: 10)])),
-          const Text('STRAPS', style: TextStyle(color: red, fontWeight: FontWeight.w900, shadows: [Shadow(color: red, blurRadius: 8), Shadow(color: red, blurRadius: 18)])),
+          const Text('InSaNe', style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.w900, color: Colors.white, shadows: [Shadow(color: Colors.white, blurRadius: 7), Shadow(color: Color(0xCCFF1744), blurRadius: 14)])),
+          const SizedBox(width: 5),
+          const Icon(Icons.workspace_premium_rounded, color: red, size: 21, shadows: [Shadow(color: red, blurRadius: 12), Shadow(color: red, blurRadius: 22)]),
+          const SizedBox(width: 5),
+          const Text('STRAPS', style: TextStyle(fontFamily: 'serif', color: red, fontWeight: FontWeight.w900, shadows: [Shadow(color: red, blurRadius: 8), Shadow(color: red, blurRadius: 18)])),
         ]),
         actions: [Padding(padding: const EdgeInsets.only(right: 16), child: Center(child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -299,7 +302,7 @@ class _AppShellState extends State<AppShell> {
     const SizedBox(height: 12),
     FilledButton.icon(onPressed: _enableFloatingTools, icon: const Icon(Icons.picture_in_picture_alt), label: const Text('Enable floating Straps icon'), style: FilledButton.styleFrom(backgroundColor: gold, foregroundColor: Colors.black)),
     const SizedBox(height: 20),
-    const Text('STRAPS TOOLS', style: TextStyle(letterSpacing: 1.5, fontSize: 12, color: Colors.white54, fontWeight: FontWeight.bold)),
+    const Text('♛  STRAPS TOOLS', style: TextStyle(fontFamily: 'serif', letterSpacing: 1.5, fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold, shadows: [Shadow(color: Color(0xCCFF1744), blurRadius: 9)])),
     const SizedBox(height: 10),
     _quick('FPS & performance tips', Icons.speed, 'Open optimization guide', () => _showToolInfo('FPS & Boost', 'This screen can show supported Android performance tips. It cannot force a higher FPS cap or overclock your device; those depend on the game, device, and Android permissions.'), wide: true),
     const SizedBox(height: 10),
@@ -514,7 +517,13 @@ class _AppShellState extends State<AppShell> {
           boxShadow: [BoxShadow(color: customAccent.withValues(alpha: .28), blurRadius: customGlow + 6)],
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('InSaNe STRAPS', style: TextStyle(fontFamily: customFont, fontSize: 24, fontWeight: FontWeight.w900, color: customAccent, shadows: [Shadow(color: customAccent, blurRadius: customGlow), Shadow(color: customAccent.withValues(alpha: .6), blurRadius: customGlow * 1.8)])),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            Text('InSaNe', style: TextStyle(fontFamily: customFont, fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white, shadows: [const Shadow(color: Colors.white, blurRadius: 6), Shadow(color: customAccent, blurRadius: customGlow)])),
+            const SizedBox(width: 5),
+            Icon(Icons.workspace_premium_rounded, color: customAccent, size: 22, shadows: [Shadow(color: customAccent, blurRadius: customGlow)]),
+            const SizedBox(width: 5),
+            Text('STRAPS', style: TextStyle(fontFamily: customFont, fontSize: 24, fontWeight: FontWeight.w900, color: customAccent, shadows: [Shadow(color: customAccent, blurRadius: customGlow), Shadow(color: customAccent.withValues(alpha: .6), blurRadius: customGlow * 1.8)])),
+          ]),
           const SizedBox(height: 8),
           Text('ROYAL • NEON • YOUR STYLE', style: TextStyle(fontFamily: customFont, color: Colors.white, letterSpacing: 1.4, shadows: [Shadow(color: customAccent, blurRadius: customGlow)])),
         ]),
