@@ -18,6 +18,8 @@ class _AuthPageState extends State<AuthPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _key = TextEditingController();
+  final _ownerToken = TextEditingController();
+  bool _ownerSetup = false;
   bool _signup = false;
   bool _busy = false;
   String? _token;
@@ -38,6 +40,7 @@ class _AuthPageState extends State<AuthPage> {
     _email.dispose();
     _password.dispose();
     _key.dispose();
+    _ownerToken.dispose();
     super.dispose();
   }
 
@@ -99,6 +102,34 @@ class _AuthPageState extends State<AuthPage> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _bootstrapOwner() async {
+    await _run(() async {
+      final username = _username.text.trim();
+      final password = _password.text;
+      await _request('POST', '/admin/bootstrap', body: {
+        'token': _ownerToken.text.trim(),
+        'username': username,
+        'password': password,
+      });
+      final result = await _request('POST', '/auth/login', body: {
+        'username': username,
+        'password': password,
+      });
+      final token = result['token'] as String;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('insane_straps_token', token);
+      final profile = await _request('GET', '/me', token: token);
+      if (!mounted) return;
+      setState(() {
+        _token = token;
+        _user = profile;
+        _message = 'Owner account initialized successfully.';
+        _ownerToken.clear();
+      });
+      await _loadOwnerData();
+    });
   }
 
   Future<void> _authenticate() async {
@@ -217,7 +248,7 @@ class _AuthPageState extends State<AuthPage> {
         Card(color: _authPanel, child: Padding(
           padding: const EdgeInsets.all(18),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            SegmentedButton<bool>(
+            if (!_ownerSetup) SegmentedButton<bool>(
               segments: const [
                 ButtonSegment(value: false, label: Text('Sign in'), icon: Icon(Icons.login)),
                 ButtonSegment(value: true, label: Text('Create account'), icon: Icon(Icons.person_add_alt_1)),
@@ -226,9 +257,14 @@ class _AuthPageState extends State<AuthPage> {
               onSelectionChanged: _busy ? null : (v) => setState(() { _signup = v.first; _message = ''; }),
             ),
             const SizedBox(height: 16),
+            if (_ownerSetup) ...[
+              TextField(controller: _ownerToken, obscureText: true,
+                decoration: const InputDecoration(labelText: 'One-time owner setup token')),
+              const SizedBox(height: 12),
+            ],
             TextField(controller: _username, textInputAction: TextInputAction.next,
               autocorrect: false, decoration: const InputDecoration(labelText: 'Username')),
-            if (_signup) ...[
+            if (_signup && !_ownerSetup) ...[
               const SizedBox(height: 12),
               TextField(controller: _email, keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
@@ -241,10 +277,16 @@ class _AuthPageState extends State<AuthPage> {
                 helperText: _signup ? 'At least 10 characters' : null)),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed: _busy ? null : _authenticate,
+              onPressed: _busy ? null : (_ownerSetup ? _bootstrapOwner : _authenticate),
               child: _busy ? const SizedBox(height: 18, width: 18,
                 child: CircularProgressIndicator(strokeWidth: 2))
-                : Text(_signup ? 'Create secure account' : 'Sign in'),
+                : Text(_ownerSetup ? 'Initialize owner account' : (_signup ? 'Create secure account' : 'Sign in')),
+            ),
+            TextButton(
+              onPressed: _busy ? null : () => setState(() {
+                _ownerSetup = !_ownerSetup; _signup = false; _message = '';
+              }),
+              child: Text(_ownerSetup ? 'Back to sign in' : 'Initial owner setup (first run only)'),
             ),
             if (_message.isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -253,7 +295,7 @@ class _AuthPageState extends State<AuthPage> {
           ]),
         )),
         const SizedBox(height: 12),
-        const Text('Passwords are checked by the backend. Owner privileges are assigned server-side and cannot be granted from the app.',
+        const Text('Owner setup works only once and requires the one-time token configured on Render. Keep that token private and remove it from Render after the owner account is created.',
           style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.4)),
       ],
     );
