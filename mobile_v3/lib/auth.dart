@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const String _apiBase = 'https://insane-straps-api.onrender.com';
 const Color _authRed = Color(0xFFFF334F);
-const Color _authGold = Color(0xFFD4AF37);
 const Color _authPanel = Color(0xFF17171D);
 
 class AuthPage extends StatefulWidget {
