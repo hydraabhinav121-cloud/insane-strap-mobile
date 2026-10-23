@@ -22,20 +22,29 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Set up Android SDK packages
-        uses: android-actions/setup-android@v3
-      - name: Install Android API 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
+      - name: Install Android API 36
+        run: |
+          SDKMANAGER="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then
+            SDKMANAGER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1)"
+          fi
+          if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
+            echo "Android sdkmanager not found; available SDK paths:"
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            ls -la "${ANDROID_HOME:-/usr/local/lib/android/sdk}" || true
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
       - name: Generate Android platform files without overwriting app source
         run: |
           flutter create --platforms=android --org com.insanestraps --project-name insane_straps_next /tmp/insane_android_template
           cp -R /tmp/insane_android_template/android mobile_v3/android
-          # Newer AndroidX plugin metadata requires Android API 36 at compile time.
           sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' mobile_v3/android/app/build.gradle.kts
       - name: Resolve packages
         working-directory: mobile_v3
