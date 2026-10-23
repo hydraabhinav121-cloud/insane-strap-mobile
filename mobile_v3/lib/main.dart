@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const InsaneStrapsApp());
 
 const red = Color(0xFFFF334F);
 const bg = Color(0xFF0A0A0D);
 const panel = Color(0xFF17171D);
-const upiId = 'akanksha1105@fam';
-const ltcAddress = 'LaLmC3Hwtuf72fd59S4deUoBUpdxNS14dK';
+const discordInvite = 'https://discord.gg/vaEXj2Yyey';
+const discordUserUrl = 'https://discord.com/users/985486854159753256';
 
 class InsaneStrapsApp extends StatelessWidget {
   const InsaneStrapsApp({super.key});
@@ -54,14 +54,14 @@ class _AppShellState extends State<AppShell> {
         ]),
         actions: [Padding(padding: const EdgeInsets.only(right: 16), child: Center(child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(color: red.withOpacity(.13), borderRadius: BorderRadius.circular(30)),
+          decoration: BoxDecoration(color: red.withValues(alpha: .13), borderRadius: BorderRadius.circular(30)),
           child: const Text('MOBILE', style: TextStyle(color: red, fontSize: 11, fontWeight: FontWeight.bold)),
         )))],
       ),
       body: SafeArea(child: IndexedStack(index: tab, children: pages)),
       bottomNavigationBar: NavigationBar(
         selectedIndex: tab, onDestinationSelected: (v) => setState(() => tab = v),
-        backgroundColor: panel, indicatorColor: red.withOpacity(.18),
+        backgroundColor: panel, indicatorColor: red.withValues(alpha: .18),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.workspace_premium_outlined), label: 'Pro'),
@@ -78,7 +78,7 @@ class _AppShellState extends State<AppShell> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         gradient: const LinearGradient(colors: [Color(0xFF34121B), Color(0xFF171116), Color(0xFF111116)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        border: Border.all(color: red.withOpacity(.35)),
+        border: Border.all(color: red.withValues(alpha: .35)),
       ),
       child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('CONTROL YOUR SETUP', style: TextStyle(color: red, letterSpacing: 2, fontSize: 11, fontWeight: FontWeight.w800)),
@@ -128,7 +128,7 @@ class _AppShellState extends State<AppShell> {
   Widget _planCard(String name, String price, String term, bool featured, VoidCallback onTap) => Card(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: featured ? red : Colors.white10, width: featured ? 1.4 : 1)),
     child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-      Container(width: 42, height: 42, decoration: BoxDecoration(color: red.withOpacity(.13), borderRadius: BorderRadius.circular(13)), child: const Icon(Icons.bolt, color: red)),
+      Container(width: 42, height: 42, decoration: BoxDecoration(color: red.withValues(alpha: .13), borderRadius: BorderRadius.circular(13)), child: const Icon(Icons.bolt, color: red)),
       const SizedBox(width: 12),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(name, style: const TextStyle(fontSize: 12, color: red, fontWeight: FontWeight.w900, letterSpacing: 1)),
@@ -141,27 +141,67 @@ class _AppShellState extends State<AppShell> {
   );
 
   void _paymentSheet(String plan, int rupees) {
-    showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: panel, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))), builder: (ctx) => Padding(
-      padding: EdgeInsets.fromLTRB(20, 22, 20, 24 + MediaQuery.of(ctx).viewInsets.bottom),
-      child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text(plan, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 4), Text('Amount due: ₹$rupees', style: const TextStyle(color: red, fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 18), const Text('UPI PAYMENT', style: TextStyle(letterSpacing: 1.2, color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8), _copyBox(upiId),
-        const SizedBox(height: 18), const Text('LITECOIN PAYMENT', style: TextStyle(letterSpacing: 1.2, color: Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8), _copyBox(ltcAddress),
-        const SizedBox(height: 8), LiveLtcQuote(inr: rupees),
-        const SizedBox(height: 14),
-        const Text('After paying, contact the owner with your transaction reference. This app does not verify payment or activate Pro yet.', style: TextStyle(color: Colors.white60, height: 1.4, fontSize: 12)),
-      ])),
-    ));
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: panel,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 22, 20, 28 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.discord, color: red, size: 36),
+            const SizedBox(height: 12),
+            Text(plan, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 4),
+            Text('Plan price: ₹$rupees', style: const TextStyle(color: red, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            const Text(
+              'Continue to our Discord server to arrange payment and request Pro activation. Please do not send payment until the owner confirms the details.',
+              style: TextStyle(color: Colors.white70, height: 1.45),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () async {
+                  final ok = await launchUrl(Uri.parse(discordInvite), mode: LaunchMode.externalApplication);
+                  if (ctx.mounted && !ok) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Could not open Discord. Try the invite link in your browser.')),
+                    );
+                  }
+                  if (ctx.mounted && ok) Navigator.of(ctx).pop();
+                },
+                icon: const Icon(Icons.discord),
+                label: const Text('Continue to Discord server'),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final ok = await launchUrl(Uri.parse(discordUserUrl), mode: LaunchMode.externalApplication);
+                  if (ctx.mounted && !ok) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Could not open the Discord profile link.')),
+                    );
+                  }
+                  if (ctx.mounted && ok) Navigator.of(ctx).pop();
+                },
+                icon: const Icon(Icons.person_outline),
+                label: const Text('Open owner Discord profile'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
-
-  Widget _copyBox(String value) => Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white10)),
-    child: Row(children: [Expanded(child: SelectableText(value, style: const TextStyle(fontSize: 12))), IconButton(tooltip: 'Copy', onPressed: () { Clipboard.setData(ClipboardData(text: value)); _snack('Copied to clipboard'); }, icon: const Icon(Icons.copy, color: red, size: 19))]),
-  );
 
   Widget _flags() => ListView(padding: const EdgeInsets.all(18), children: [
     const Text('Fast Flags', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
@@ -197,46 +237,7 @@ class _AppShellState extends State<AppShell> {
 
   Widget _section(String text) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(text, style: const TextStyle(letterSpacing: 1.5, fontSize: 12, color: Colors.white54, fontWeight: FontWeight.bold)));
   Widget _statusRow(IconData icon, String label, String value) => Row(children: [Icon(icon, color: red, size: 20), const SizedBox(width: 12), Expanded(child: Text(label)), Text(value, style: const TextStyle(color: Colors.white54, fontSize: 12))]);
-  Widget _quick(String title, IconData icon, String subtitle, VoidCallback onTap, {bool wide = false}) => Card(child: InkWell(borderRadius: BorderRadius.circular(16), onTap: onTap, child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [Container(width: 42, height: 42, decoration: BoxDecoration(color: red.withOpacity(.12), borderRadius: BorderRadius.circular(13)), child: Icon(icon, color: red)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12))])), if (wide) const Icon(Icons.chevron_right, color: Colors.white54)]))));
+  Widget _quick(String title, IconData icon, String subtitle, VoidCallback onTap, {bool wide = false}) => Card(child: InkWell(borderRadius: BorderRadius.circular(16), onTap: onTap, child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [Container(width: 42, height: 42, decoration: BoxDecoration(color: red.withValues(alpha: .12), borderRadius: BorderRadius.circular(13)), child: Icon(icon, color: red)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12))])), if (wide) const Icon(Icons.chevron_right, color: Colors.white54)]))));
   void _snack(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 }
 
-class LiveLtcQuote extends StatefulWidget {
-  final int inr;
-  const LiveLtcQuote({super.key, required this.inr});
-  @override State<LiveLtcQuote> createState() => _LiveLtcQuoteState();
-}
-class _LiveLtcQuoteState extends State<LiveLtcQuote> {
-  double? ltcInr, ltcUsd;
-  String? error;
-  bool loading = true;
-  @override void initState() { super.initState(); _load(); }
-  Future<void> _load() async {
-    try {
-      final response = await http.get(Uri.parse('https://api.coingecko.com/api/v3/simple/price?ids=litecoin&vs_currencies=inr,usd')).timeout(const Duration(seconds: 12));
-      if (response.statusCode != 200) throw Exception('Rate provider unavailable');
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final coin = data['litecoin'] as Map<String, dynamic>;
-      if (!mounted) return;
-      setState(() { ltcInr = (coin['inr'] as num).toDouble(); ltcUsd = (coin['usd'] as num).toDouble(); loading = false; });
-    } catch (_) { if (mounted) setState(() { loading = false; error = 'Live LTC rate unavailable. Try again later; do not guess the amount.'; }); }
-  }
-  @override Widget build(BuildContext context) {
-    if (loading) return const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator());
-    if (error != null || ltcInr == null || ltcUsd == null || ltcInr! <= 0 || ltcUsd! <= 0) return Text(error ?? 'Rate unavailable', style: const TextStyle(color: Colors.orangeAccent, fontSize: 12));
-    final amount = widget.inr / ltcInr!;
-    final usd = widget.inr / ltcInr! * ltcUsd!;
-    return Container(
-      padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(color: const Color(0xFF101014), borderRadius: BorderRadius.circular(12)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('ESTIMATED LIVE CONVERSION', style: TextStyle(color: red, fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Text('${amount.toStringAsFixed(6)} LTC  ≈  \${usd.toStringAsFixed(2)} USD', style: const TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        const Text('Indicative quote only. Network fees and rate changes may affect the final amount. Verify the address and amount before sending.', style: TextStyle(color: Colors.white54, fontSize: 11, height: 1.35)),
-        Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () { setState(() { loading = true; error = null; }); _load(); }, child: const Text('Refresh rate'))),
-      ]),
-    );
-  }
-}
