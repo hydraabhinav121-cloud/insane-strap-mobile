@@ -14,9 +14,6 @@ permissions:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile_v3
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,13 +27,18 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Generate Android project files
-        run: flutter create . --platforms=android --org com.insanestraps --project-name insane_straps_next
+      - name: Generate Android platform files without overwriting app source
+        run: |
+          flutter create --platforms=android --org com.insanestraps --project-name insane_straps_next /tmp/insane_android_template
+          cp -R /tmp/insane_android_template/android mobile_v3/android
       - name: Resolve packages
+        working-directory: mobile_v3
         run: flutter pub get
       - name: Analyze Dart code
+        working-directory: mobile_v3
         run: flutter analyze
       - name: Build release APK
+        working-directory: mobile_v3
         run: flutter build apk --release
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
