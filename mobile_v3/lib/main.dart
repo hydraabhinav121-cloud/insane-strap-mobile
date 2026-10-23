@@ -32,7 +32,7 @@ class _IntroSplashState extends State<IntroSplash> with TickerProviderStateMixin
     body: AnimatedBuilder(animation: _c, builder: (_, __) {
       final t = Curves.easeOutCubic.transform(_c.value);
       return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Transform.scale(scale: .65 + .35*t, child: Opacity(opacity: t, child: const Icon(Icons.workspace_premium_rounded, size: 104, color: gold))),
+        Transform.scale(scale: .65 + .35*t, child: Opacity(opacity: t, child: Image.asset('assets/app_icon.png', width: 124, height: 124, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.workspace_premium_rounded, size: 104, color: gold)))),
         const SizedBox(height: 26),
         Row(mainAxisSize: MainAxisSize.min, children: List.generate(_letters.length, (i) =>
           Opacity(opacity: ((_c.value*1.7)-i*.15).clamp(0.0, 1.0),
@@ -175,40 +175,56 @@ class _AppShellState extends State<AppShell> {
     ),
   ]);
 
+  Future<void> _openGame(String name, String packageName, String storeUrlText) async {
+    try {
+      await AndroidIntent(
+        action: 'android.intent.action.MAIN',
+        category: 'android.intent.category.LAUNCHER',
+        package: packageName,
+      ).launch();
+    } catch (_) {
+      if (!mounted) return;
+      _snack('$name is not installed or Android could not open it. Opening its store page.');
+      final ok = await launchUrl(Uri.parse(storeUrlText), mode: LaunchMode.externalApplication);
+      if (!ok && mounted) _snack('Could not open $name. Check whether it is installed.');
+    }
+  }
+
   Widget _gameCard(String name, String subtitle, IconData icon, String packageName, String storeUrlText) => Card(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0x44D4AF37))),
-    child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-      Container(width: 54, height: 54, decoration: BoxDecoration(color: const Color(0x22D4AF37), borderRadius: BorderRadius.circular(16)), child: Icon(icon, color: const Color(0xFFD4AF37), size: 30)),
-      const SizedBox(width: 14),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-        const SizedBox(height: 4),
-        Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
-      ])),
-      PopupMenuButton<String>(
-        icon: const Icon(Icons.more_vert),
-        onSelected: (v) async {
-          if (v == 'launch') {
-            try {
-              await AndroidIntent(
-                action: 'android.intent.action.MAIN',
-                category: 'android.intent.category.LAUNCHER',
-                package: packageName,
-              ).launch();
-              return;
-            } catch (_) {
-              if (mounted) _snack('$name may not be installed. Opening its store page.');
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0x66D4AF37))),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: () => _openGame(name, packageName, storeUrlText),
+      child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+        Container(width: 54, height: 54, decoration: BoxDecoration(
+          color: const Color(0x22D4AF37), borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: gold.withValues(alpha: .14), blurRadius: 16)],
+        ), child: Icon(icon, color: gold, size: 30)),
+        const SizedBox(width: 14),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, shadows: [Shadow(color: Color(0x66D4AF37), blurRadius: 10)])),
+          const SizedBox(height: 4),
+          Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+          const SizedBox(height: 4),
+          const Text('TAP TO LAUNCH', style: TextStyle(color: gold, fontSize: 9, letterSpacing: 1.4, fontWeight: FontWeight.bold)),
+        ])),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (v) async {
+            if (v == 'launch') {
+              await _openGame(name, packageName, storeUrlText);
+            } else {
+              final ok = await launchUrl(Uri.parse(storeUrlText), mode: LaunchMode.externalApplication);
+              if (!ok && mounted) _snack('Could not open $name store page.');
             }
-          }
-          final ok = await launchUrl(Uri.parse(storeUrlText), mode: LaunchMode.externalApplication);
-          if (!ok && mounted) _snack('Could not open $name store page.');
-        },
-        itemBuilder: (_) => const [
-          PopupMenuItem(value: 'launch', child: Text('Open installed game')),
-          PopupMenuItem(value: 'store', child: Text('Open Play Store')),
-        ],
-      ),
-    ])),
+          },
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'launch', child: Text('Open installed game')),
+            PopupMenuItem(value: 'store', child: Text('Open Play Store')),
+          ],
+        ),
+      ])),
+    ),
   );
 
   void _showToolInfo(String title, String message) {

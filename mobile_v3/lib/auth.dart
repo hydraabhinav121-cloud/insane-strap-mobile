@@ -106,7 +106,11 @@ class _AuthPageState extends State<AuthPage> {
     try {
       await action();
     } catch (e) {
-      if (mounted) setState(() => _message = e.toString().replaceFirst('Exception: ', ''));
+      final raw = e.toString();
+      final friendly = e is SocketException || raw.contains('Failed host lookup') || raw.contains('No address associated with hostname')
+          ? 'Account server could not be reached. Check the Render service URL, DNS, and backend deployment.'
+          : raw.replaceFirst('Exception: ', '');
+      if (mounted) setState(() => _message = friendly);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -284,7 +288,7 @@ class _AuthPageState extends State<AuthPage> {
             TextField(controller: _password, obscureText: true,
               onSubmitted: (_) => _authenticate(),
               decoration: InputDecoration(labelText: 'Password',
-                helperText: _signup ? 'At least 10 characters' : null)),
+                helperText: _ownerSetup ? 'Use a strong password with at least 12 characters' : (_signup ? 'At least 10 characters' : null)),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: _busy ? null : (_ownerSetup ? _bootstrapOwner : _authenticate),
